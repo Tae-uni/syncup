@@ -1,0 +1,14 @@
+# Node
+node_modules/
+package-lock.json
+
+# OS
+.DS_Store
+
+# Env
+.env
+.env.*
+
+# IDE
+.idea/
+.vscode/
