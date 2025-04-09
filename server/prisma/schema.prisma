@@ -1,0 +1,22 @@
+// After you change your Prisma schema, do not forget:
+// Run `npx prisma migrate dev --name <description>` to update DB - like a git.
+// Run `npx prisma generate` to regenerate Prisma for TypeScript
+// Run `npx prisma studio` to open Prisma Studio
+// Run `npx prisma db push` to push schema changes to the database without creating a migration -> Do not recommend...
+
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "postgresql"
+  url      = env("DATABASE_URL")
+}
+
+// This User is just an example.
+model User {
+  id        String   @id @default(uuid())
+  email     String   @unique
+  name      String?
+  createdAt DateTime @default(now())
+}
