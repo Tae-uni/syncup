@@ -1,9 +1,12 @@
 "use client";
 
+import { useState } from "react";
+
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Textarea } from "@/components/ui/textarea";
-import { useState } from "react";
+import CalendarPicker from "@/components/CalendarPicker";
+import DatePill from "@/components/DatePill";
 
 export default function Meetings() {
   const [selectedDates, setSelectedDates] = useState<Date[]>([]);
@@ -41,13 +44,46 @@ export default function Meetings() {
           </Textarea>
         </div>
 
+        {/* Meeting Calendar */}
         <div className="flex flex-col w-full max-w-md">
           <Label htmlFor="meeting-dates" className="text-lg mt-8 block text-left">
             Meeting Dates
           </Label>
           <div className="border border-gray-300 rounded-md p-2 mt-2 w-full">
+            <CalendarPicker
+              onSelectDate={(dates: Date[] | undefined) => setSelectedDates(dates || [])}
+              selected={selectedDates}
+              maxDates={10}
+            />
+            {selectedDates.length > 0 && (
+              <div className="mt-4 flex flex-wrap gap-2">
+                {selectedDates.map((date, index) => (
+                  <span
+                    key={index}
+                    className="bg-blue-100 text-blue-800 px-2 py-1 rounded-md text-sm"
+                  >
+                    {date.toLocaleDateString()}
+                  </span>
+                ))}
+              </div>
+            )}
           </div>
         </div>
+
+        {/* Date Pills */}
+        {/* <div className="flex flex-wrap gap-2">
+          {selectedDates.map((date, index) => (
+            <DatePill key={index} date={date} />
+          ))}
+        </div> */}
+
+        {/* Time Slots */}
+        <div className="flex flex-col w-full max-w-md">
+          <Label htmlFor="meeting-dates" className="text-lg mt-8 block text-left">
+            Meeting Times
+          </Label>
+        </div>
+
       </main>
     </>
   )
