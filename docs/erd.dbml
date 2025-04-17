@@ -1,0 +1,31 @@
+# Copy and paste on https://dbdiagram.io/
+
+Table Event {
+  id uuid [pk]
+  title text
+  contents text [null]
+  expiresAt datetime [null]
+  createdAt datetime
+}
+
+Table Participant {
+  id uuid [pk]
+  name string
+  eventId uuid [ref: > Event.id]
+  startTime datetime
+  endTime datetime
+}
+
+Table TimeOption {
+  id uuid [pk]
+  eventId uuid [ref: > Event.id]
+  startTime datetime
+  endTime datetime
+}
+
+Table Vote {
+  id uuid [pk]
+  participantId uuid [ref: > Participant.id]
+  timeOptionId uuid [ref: > TimeOption.id]
+  createdAt datetime
+}
