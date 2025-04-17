@@ -6,6 +6,7 @@ import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Textarea } from "@/components/ui/textarea";
 import CalendarPicker from "@/components/CalendarPicker";
+import TimeSelector from "@/components/TimeSelector";
 import DatePill from "@/components/DatePill";
 
 export default function Meetings() {
@@ -18,7 +19,7 @@ export default function Meetings() {
           Create a New Meeting
         </h1>
       </header>
-      <main className="flex flex-col items-center justify-center p-20">
+      <main className="flex flex-col items-center justify-center p-10">
         <div className="flex flex-col w-full max-w-md">
           <Label htmlFor="meeting-title" className="text-lg mt-8 block text-left">
             Meeting Title
@@ -77,13 +78,18 @@ export default function Meetings() {
           ))}
         </div> */}
 
-        {/* Time Slots */}
+        {/* Time Selector */}
         <div className="flex flex-col w-full max-w-md">
           <Label htmlFor="meeting-dates" className="text-lg mt-8 block text-left">
             Meeting Times
           </Label>
+          <div className="border border-gray-300 rounded-md p-2 mt-2 w-full">
+            <TimeSelector
+              selectedDates={selectedDates}
+              onChange={(timesData) => console.log(timesData)}
+            />
+          </div>
         </div>
-
       </main>
     </>
   )

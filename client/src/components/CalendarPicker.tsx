@@ -39,7 +39,7 @@ export default function CalendarPicker({
         <Button
           variant="outline"
           className={cn(
-            "w-[280px] justify-start text-left font-normal",
+            "w-full justify-start text-left font-normal",
             !selected?.length && "text-muted-foreground"
           )}
         >
