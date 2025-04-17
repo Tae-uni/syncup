@@ -13,10 +13,46 @@ datasource db {
   url      = env("DATABASE_URL")
 }
 
-// This User is just an example.
-model User {
+model Event {
   id        String   @id @default(uuid())
-  email     String   @unique
-  name      String?
-  createdAt DateTime @default(now())
+  title     String
+  content   String?
+  expiresAt DateTime?
+  createdAt DateTime @default(now()) 
+
+  timeOptions TimeOption[]
+  participants Participant[]
+
+  @@index([expiresAt])
+}
+
+model TimeOption {
+  id        String   @id @default(uuid())
+  event     Event    @relation(fields: [eventId], references: [id])
+  eventId   String
+  startTime DateTime
+  endTime   DateTime
+
+  votes     Vote[]
+}
+
+model Participant {
+  id        String   @id @default(uuid())
+  name      String
+  event     Event    @relation(fields: [eventId], references: [id])
+  eventId   String
+
+  votes     Vote[]
+}
+
+model Vote {
+  id               String       @id @default(uuid())
+  participant      Participant  @relation(fields: [participantId], references: [id])
+  participantId    String
+  timeOption       TimeOption   @relation(fields: [timeOptionId], references: [id])
+  timeOptionId     String
+
+  createdAt        DateTime     @default(now())
+
+  @@unique([participantId, timeOptionId])
 }
