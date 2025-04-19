@@ -1,9 +1,10 @@
 # Copy and paste on https://dbdiagram.io/
 
-Table Event {
+Table Sync {
   id uuid [pk]
   title text
-  contents text [null]
+  description textarea [null]
+  timeZone string [default: "UTC"]
   expiresAt datetime [null]
   createdAt datetime
 }
@@ -11,16 +12,19 @@ Table Event {
 Table Participant {
   id uuid [pk]
   name string
-  eventId uuid [ref: > Event.id]
-  startTime datetime
-  endTime datetime
+  syncId uuid [ref: > Sync.id]
+  createdAt datetime
 }
 
 Table TimeOption {
   id uuid [pk]
-  eventId uuid [ref: > Event.id]
+  syncId uuid [ref: > Sync.id]
+  date datetime
   startTime datetime
   endTime datetime
+  // If it is null, made by host
+  createdByParticipantId uuid [ref: > Participant.id, null]
+  createdAt datetime
 }
 
 Table Vote {
@@ -28,4 +32,8 @@ Table Vote {
   participantId uuid [ref: > Participant.id]
   timeOptionId uuid [ref: > TimeOption.id]
   createdAt datetime
+
+  indexes {
+    (participantId, timeOptionId) [unique]
+  }
 }
