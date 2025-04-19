@@ -13,46 +13,53 @@ datasource db {
   url      = env("DATABASE_URL")
 }
 
-model Event {
-  id        String   @id @default(uuid())
-  title     String
-  content   String?
-  expiresAt DateTime?
-  createdAt DateTime @default(now()) 
+model Sync {
+  id          String    @id @default(uuid())
+  title       String
+  description String?
+  timeZone    String    @default("UTC")
+  expiresAt   DateTime?
+  createdAt   DateTime  @default(now())
 
-  timeOptions TimeOption[]
+  timeOptions  TimeOption[]
   participants Participant[]
 
   @@index([expiresAt])
 }
 
 model TimeOption {
-  id        String   @id @default(uuid())
-  event     Event    @relation(fields: [eventId], references: [id])
-  eventId   String
-  startTime DateTime
-  endTime   DateTime
+  id                     String   @id @default(uuid())
+  syncId                 String
+  date                   DateTime
+  startTime              DateTime
+  endTime                DateTime
+  createdByParticipantId String?
+  createdAt              DateTime @default(now())
 
+  sync      Sync         @relation(fields: [syncId], references: [id], onDelete: Cascade)
+  createdBy Participant? @relation(fields: [createdByParticipantId], references: [id], onDelete: SetNull)
   votes     Vote[]
 }
 
 model Participant {
   id        String   @id @default(uuid())
   name      String
-  event     Event    @relation(fields: [eventId], references: [id])
-  eventId   String
+  syncId    String
+  createdAt DateTime @default(now())
 
-  votes     Vote[]
+  sync       Sync         @relation(fields: [syncId], references: [id], onDelete: Cascade)
+  votes      Vote[]
+  TimeOption TimeOption[]
 }
 
 model Vote {
-  id               String       @id @default(uuid())
-  participant      Participant  @relation(fields: [participantId], references: [id])
-  participantId    String
-  timeOption       TimeOption   @relation(fields: [timeOptionId], references: [id])
-  timeOptionId     String
+  id            String   @id @default(uuid())
+  participantId String
+  timeOptionId  String
+  createdAt     DateTime @default(now())
 
-  createdAt        DateTime     @default(now())
+  participant Participant @relation(fields: [participantId], references: [id], onDelete: Cascade)
+  timeOption  TimeOption  @relation(fields: [timeOptionId], references: [id], onDelete: Cascade)
 
   @@unique([participantId, timeOptionId])
 }
