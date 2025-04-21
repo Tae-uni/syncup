@@ -1,49 +1,8 @@
 import prisma from "../../config/prisma";
-
-export interface TimeSelectorInput {
-  date: string;
-  startTime: string;
-  endTime: string;
-}
-
-export interface SyncInput {
-  title: string;
-  description: string;
-  timeSelector: TimeSelectorInput[];
-  timeZone?: string;
-  expiresAt?: string;
-}
+import { SyncInput } from "./schemas";
 
 export const createSync = async (data: SyncInput) => {
-  const { title, description, timeSelector, timeZone, expiresAt } = data;
-
-  if (!title) {
-    throw new Error("Title is required");
-  }
-
-  if (!timeSelector || timeSelector.length === 0) {
-    throw new Error("Time selector is required");
-  }
-
-  // let expiration: Date | undefined;
-
-  // if (expiresAt) {
-  //   // If an expiration date is provided, use it
-  //   expiration = new Date(expiresAt);
-
-  //   const now = new Date();
-
-  //   const maxExpirationDate = new Date(now);
-  //   maxExpirationDate.setDate(now.getDate() + 7);
-
-  //   if (expiration > maxExpirationDate) {
-  //     expiration = maxExpirationDate;
-  //   }
-  // } else {
-  //   // Default to 3 days if no expiration is provided
-  //   expiration = new Date();
-  //   expiration.setDate(expiration.getDate() + 3);
-  // }
+  const { title, description, timeSelector, timeZone } = data;
 
   // Create the sync
   return prisma.sync.create({

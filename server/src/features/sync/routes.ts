@@ -1,9 +1,11 @@
 import { Router } from "express";
 import * as syncController from "./controller";
+import { validateRequest } from "../../middlewares/validators";
+import { syncInputSchema } from "./schemas";
 
 const router = Router();
 
-router.post('/', syncController.create);
+router.post('/', validateRequest(syncInputSchema), syncController.create);
 // router.get('/:id', getSync);
 
 // router.put('/:id', updateSync);
