@@ -2,9 +2,11 @@ import { z } from "zod";
 
 const isValidTimeZone = (tz: string) => {
   try {
-    Intl.DateTimeFormat(tz);
+    new Intl.DateTimeFormat(undefined, { timeZone: tz });
+    console.log(`Valid time zone: ${tz}`);
     return true;
-  } catch {
+  } catch (error) {
+    console.log(`Invalid time zone: ${tz}`, error);
     return false;
   }
 }
