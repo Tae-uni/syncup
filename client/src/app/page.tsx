@@ -9,9 +9,9 @@ export default function Home() {
         Quickly sync schedule with your group - all in just a few second!
       </p>
       
-      <Link href="/" className="mt-20">
+      <Link href="/sync" className="mt-20">
         <Button variant={"default"} className="mt-20">
-          Create a new meeting
+          Create a new sync
         </Button>
       </Link>
     </main>

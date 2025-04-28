@@ -1,4 +1,4 @@
-import { CreateSyncFormData, SyncData } from "@/types/Sync";
+import { CreateSyncFormData, SyncData } from "@/types/sync";
 
 export async function createSync(formData: CreateSyncFormData) {
   try {
