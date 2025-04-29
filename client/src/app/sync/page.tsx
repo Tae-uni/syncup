@@ -5,11 +5,11 @@ import { useEffect, useState } from "react";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Textarea } from "@/components/ui/textarea";
-import CalendarPicker from "@/components/CalendarPicker";
-import TimeSelector from "@/components/TimeSelector";
-import DatePill from "@/components/DatePill";
+import CalendarPicker from "@/components/sync/CalendarPicker";
+import TimeSelector from "@/components/sync/TimeSelector";
+import DatePill from "@/components/sync/DatePill";
 import { Button } from "@/components/ui/button";
-import TimeZoneSelector from "@/components/TimeZoneSelector";
+import TimeZoneSelector from "@/components/sync/TimeZoneSelector";
 
 import { getUserTimeZone } from "@/lib/timezone-convert";
 
