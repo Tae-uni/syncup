@@ -3,14 +3,15 @@
 import { useEffect, useState } from "react";
 import { useParams } from "next/navigation";
 
+import AvailabilityHeatmap from "@/components/sync/AvailabilityHeatmap";
 import { Skeleton } from "@/components/ui/skeleton";
 import { Button } from "@/components/ui/button";
 import { SyncData } from "@/types/sync";
+import { buildHeatmapData } from "@/lib/heatmapConvert";
 import { getSync } from "../syncApi";
 
 export default function SyncView() {
   const params = useParams();
-
   // const id = params.id as string;
 
   // const [loading, setLoading] = useState(true);
@@ -111,6 +112,10 @@ export default function SyncView() {
   type ParticipantNameOnly = Pick<SyncData['participants'][number], 'name'>;
   const participantNames: ParticipantNameOnly[] = syncData.participants.map(p => ({ name: p.name }))
 
+  const dates = Array.from(new Set(syncData.timeOptions.map(opt => opt.date)));
+  const timeBlocks = getAllTimeBlocks(syncData.timeOptions);
+  const heatmapData = buildHeatmapData(syncData.timeOptions, dates, timeBlocks);
+  const totalParticipants = syncData.participants.length;
   return (
     <main>
       <header className="container mx-auto px-4 py-8 max-w-4xl">
@@ -143,6 +148,7 @@ export default function SyncView() {
         <section className="mb-8">
           <h2 className="text-xl font-semibold mb-4">Heatmap</h2>
           {/* TODO:Heatmap component */}
+          <AvailabilityHeatmap data={heatmapData} dates={dates} timeBlocks={timeBlocks} totalParticipants={totalParticipants}/>
         </section>
         <section>
           <h2 className="text-lg font-semibold mb-4">
@@ -182,4 +188,31 @@ function ErrorDisplay({ message }: { message: string }) {
       </div>
     </div>
   );
+}
+
+// 9am - 5pm every 30 minutes
+function getDefaultTimeBlocks() {
+  const blocks: string[] = [];
+  for (let hour = 9; hour < 17; hour++) {
+    blocks.push(`${hour.toString().padStart(2, "0")}:00`);
+    blocks.push(`${hour.toString().padStart(2, "0")}:30`);
+  }
+  blocks.push("17:00");
+  return blocks;
+}
+
+// Get all time blocks from time options
+function getAllTimeBlocks(timeOptions: SyncData["timeOptions"]) {
+  const defaultBlocks = getDefaultTimeBlocks();
+  const userBlocks = new Set(defaultBlocks);
+
+  timeOptions.forEach(opt => {
+    // 09:00:00 -> 09:00 format change
+    const start = opt.startTime.slice(0, 5);
+    const end = opt.endTime.slice(0, 5);
+    userBlocks.add(start);
+    userBlocks.add(end);
+  });
+
+  return Array.from(userBlocks).sort();
 }
