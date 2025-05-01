@@ -2,7 +2,9 @@
 
 import { useEffect, useState } from "react";
 import { useParams } from "next/navigation";
+import { BombIcon, ClockIcon } from "lucide-react";
 
+import MostAvailableTimes from "@/components/sync/MostAvailableTimes";
 import TimeGridHeatmap from "@/components/sync/TimeGridHeatmap";
 import { Skeleton } from "@/components/ui/skeleton";
 import { Button } from "@/components/ui/button";
@@ -52,6 +54,7 @@ export default function SyncView() {
   //   return <ErrorDisplay message="Sync not found" />
   // }
 
+  // Mock data
   const syncData: SyncData = {
     id: "mock-id-1",
     title: "Team Weekly Planning",
@@ -64,7 +67,7 @@ export default function SyncView() {
         id: "to1",
         syncId: "mock-id-1",
         date: "2023-08-10",
-        startTime: "09:00:00",
+        startTime: "09:30:00",
         endTime: "10:00:00",
         createdByParticipantId: null,
         createdAt: new Date().toISOString(),
@@ -163,18 +166,16 @@ export default function SyncView() {
         {syncData.description && (
           <h2 className="text-lg font-medium mb-4">{syncData.description}</h2>
         )}
-        <div className="mt-10 flex justify-between">
-          <div className="bg-blue-100 text-blue-800 px-3 py-1 rounded-full text-sm">
-            Host Timezone: {syncData.timeZone}
-          </div>
+        <div className="py-1 text-sm font-mono">
+          <ClockIcon className="w-5 h-5 inline-block" /> {syncData.timeZone}
           {syncData.expiresAt && (
-            <div className="bg-amber-100 text-amber-800 px-3 py-1 rounded-sm text-sm">
-              Expires at: {new Date(syncData.expiresAt).toLocaleString()}
+            <div className="font-mono">
+              <BombIcon className="w-5 h-5 inline-block" /> {new Date(syncData.expiresAt).toLocaleString()}
             </div>
           )}
         </div>
       </header>
-
+      <hr className="mx-4"/>
       <section className="container mx-auto px-4 py-8 max-w-4xl">
         <section className="mb-8">
           <h2 className="text-xl font-semibold mb-4">{syncData.participants.length} Participants</h2>
@@ -185,8 +186,16 @@ export default function SyncView() {
           </ul>
         </section>
 
-        <section className="mb-8">
-          <h2 className="text-xl font-semibold mb-4">Heatmap</h2>
+        <section>
+          <h2 className="text-lg font-semibold mb-4">
+            Most available time
+          </h2>
+          {/* Most available time */}
+          <MostAvailableTimes
+            timeOptions={syncData.timeOptions}
+            totalParticipants={syncData.participants.length}
+            limit={2}
+          />
           {/* Heatmap component */}
           <TimeGridHeatmap
             dates={dates}
@@ -195,11 +204,9 @@ export default function SyncView() {
             totalParticipants={syncData.participants.length}
           />
         </section>
-        <section>
-          <h2 className="text-lg font-semibold mb-4">
-            Most available time:
-            {/* TODO: Show the most available time */}
-          </h2>
+
+        <section className="mb-8">
+          <h2 className="text-xl font-semibold mb-4">Heatmap</h2>
         </section>
       </section>
 
