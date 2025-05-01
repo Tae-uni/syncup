@@ -1,10 +1,11 @@
 import { useState } from "react";
 import { CalendarIcon } from "lucide-react";
-import { cn } from "@/lib/utils";
-import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover";
 
-import { Button } from "./ui/button";
-import { Calendar } from "./ui/calendar";
+import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover";
+import { Button } from "@/components/ui/button";
+import { Calendar } from "@/components/ui/calendar";
+
+import { cn } from "@/lib/utils";
 
 interface CalendarPickerProps {
   onSelectDate: (dates: Date[] | undefined) => void;

@@ -3,11 +3,10 @@
 import { useEffect, useState } from "react";
 import { useParams } from "next/navigation";
 
-import AvailabilityHeatmap from "@/components/sync/AvailabilityHeatmap";
+import TimeGridHeatmap from "@/components/sync/TimeGridHeatmap";
 import { Skeleton } from "@/components/ui/skeleton";
 import { Button } from "@/components/ui/button";
 import { SyncData } from "@/types/sync";
-import { buildHeatmapData } from "@/lib/heatmapConvert";
 import { getSync } from "../syncApi";
 
 export default function SyncView() {
@@ -106,6 +105,30 @@ export default function SyncView() {
         votes: [],
         TimeOption: []
       },
+      {
+        id: "p3",
+        name: "John Doe",
+        syncId: "mock-id-1",
+        createdAt: new Date().toISOString(),
+        votes: [],
+        TimeOption: []
+      },
+      {
+        id: "p4",
+        name: "Jane Smith",
+        syncId: "mock-id-1",
+        createdAt: new Date().toISOString(),
+        votes: [],
+        TimeOption: []
+      },
+      {
+        id: "p5",
+        name: "John Doe",
+        syncId: "mock-id-1",
+        createdAt: new Date().toISOString(),
+        votes: [],
+        TimeOption: []
+      },
     ]
   };
 
@@ -114,8 +137,25 @@ export default function SyncView() {
 
   const dates = Array.from(new Set(syncData.timeOptions.map(opt => opt.date)));
   const timeBlocks = getAllTimeBlocks(syncData.timeOptions);
-  const heatmapData = buildHeatmapData(syncData.timeOptions, dates, timeBlocks);
-  const totalParticipants = syncData.participants.length;
+
+  const voteData = new Map<string, number>();
+  // const gradientBlocks = new Map<string, string>(); // gradient color for 30min blocks
+
+  syncData.timeOptions.forEach(opt => {
+    const startTime = opt.startTime.slice(0, 5);
+    const endTime = opt.endTime.slice(0, 5);
+
+    const startIdx = timeBlocks.indexOf(startTime);
+    const endIdx = timeBlocks.indexOf(endTime);
+
+    if (startIdx !== -1 && endIdx !== -1) {
+      for (let i = startIdx; i <= endIdx; i++) {
+        const key = `${opt.date}_${timeBlocks[i]}`;
+        voteData.set(key, (voteData.get(key) || 0) + opt.votes.length);
+      }
+    }
+  });
+
   return (
     <main>
       <header className="container mx-auto px-4 py-8 max-w-4xl">
@@ -147,8 +187,13 @@ export default function SyncView() {
 
         <section className="mb-8">
           <h2 className="text-xl font-semibold mb-4">Heatmap</h2>
-          {/* TODO:Heatmap component */}
-          <AvailabilityHeatmap data={heatmapData} dates={dates} timeBlocks={timeBlocks} totalParticipants={totalParticipants}/>
+          {/* Heatmap component */}
+          <TimeGridHeatmap
+            dates={dates}
+            timeBlocks={timeBlocks}
+            voteData={voteData}
+            totalParticipants={syncData.participants.length}
+          />
         </section>
         <section>
           <h2 className="text-lg font-semibold mb-4">
@@ -193,9 +238,9 @@ function ErrorDisplay({ message }: { message: string }) {
 // 9am - 5pm every 30 minutes
 function getDefaultTimeBlocks() {
   const blocks: string[] = [];
-  for (let hour = 9; hour < 17; hour++) {
+  for (let hour = 9; hour <= 17; hour++) {
     blocks.push(`${hour.toString().padStart(2, "0")}:00`);
-    blocks.push(`${hour.toString().padStart(2, "0")}:30`);
+    // blocks.push(`${hour.toString().padStart(2, "0")}:30`);
   }
   blocks.push("17:00");
   return blocks;
