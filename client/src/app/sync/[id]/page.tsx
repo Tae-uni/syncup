@@ -67,25 +67,42 @@ export default function SyncView() {
         id: "to1",
         syncId: "mock-id-1",
         date: "2023-08-10",
-        startTime: "09:30:00",
+        startTime: "07:30:00",
         endTime: "10:00:00",
         createdByParticipantId: null,
         createdAt: new Date().toISOString(),
         votes: [
           { id: "v1", participantId: "p1", timeOptionId: "to1", createdAt: new Date().toISOString() },
           { id: "v2", participantId: "p2", timeOptionId: "to1", createdAt: new Date().toISOString() },
-          { id: "v3", participantId: "p3", timeOptionId: "to1", createdAt: new Date().toISOString() }
+          { id: "v3", participantId: "p3", timeOptionId: "to1", createdAt: new Date().toISOString() },
+          { id: "v4", participantId: "p1", timeOptionId: "to2", createdAt: new Date().toISOString() },
         ]
       },
       {
         id: "to2",
         syncId: "mock-id-1",
         date: "2023-08-11",
-        startTime: "14:00:00",
-        endTime: "15:00:00",
+        startTime: "15:00:00",
+        endTime: "16:30:00",
         createdByParticipantId: null,
         createdAt: new Date().toISOString(),
         votes: [
+          { id: "v4", participantId: "p1", timeOptionId: "to2", createdAt: new Date().toISOString() },
+          { id: "v5", participantId: "p4", timeOptionId: "to2", createdAt: new Date().toISOString() }
+        ]
+      },
+      {
+        id: "to3",
+        syncId: "mock-id-1",
+        date: "2023-08-12",
+        startTime: "10:30:00",
+        endTime: "12:00:00",
+        createdByParticipantId: null,
+        createdAt: new Date().toISOString(),
+        votes: [
+          { id: "v1", participantId: "p1", timeOptionId: "to1", createdAt: new Date().toISOString() },
+          { id: "v2", participantId: "p2", timeOptionId: "to1", createdAt: new Date().toISOString() },
+          { id: "v3", participantId: "p3", timeOptionId: "to1", createdAt: new Date().toISOString() },
           { id: "v4", participantId: "p1", timeOptionId: "to2", createdAt: new Date().toISOString() },
           { id: "v5", participantId: "p4", timeOptionId: "to2", createdAt: new Date().toISOString() }
         ]
@@ -139,15 +156,15 @@ export default function SyncView() {
   const participantNames: ParticipantNameOnly[] = syncData.participants.map(p => ({ name: p.name }))
 
   const dates = Array.from(new Set(syncData.timeOptions.map(opt => opt.date)));
-  const timeBlocks = getAllTimeBlocks(syncData.timeOptions);
+  // Get all time blocks including those outside the default range
+  const timeBlocks = getAllSelectedTimeBlocks(syncData.timeOptions);
 
   const voteData = new Map<string, number>();
-  // const gradientBlocks = new Map<string, string>(); // gradient color for 30min blocks
 
   syncData.timeOptions.forEach(opt => {
     const startTime = opt.startTime.slice(0, 5);
     const endTime = opt.endTime.slice(0, 5);
-
+    
     const startIdx = timeBlocks.indexOf(startTime);
     const endIdx = timeBlocks.indexOf(endTime);
 
@@ -175,7 +192,7 @@ export default function SyncView() {
           )}
         </div>
       </header>
-      <hr className="mx-4"/>
+      <hr className="mx-4" />
       <section className="container mx-auto px-4 py-8 max-w-4xl">
         <section className="mb-8">
           <h2 className="text-xl font-semibold mb-4">{syncData.participants.length} Participants</h2>
@@ -197,16 +214,17 @@ export default function SyncView() {
             limit={2}
           />
           {/* Heatmap component */}
+        </section>
+
+        <section className="mb-8">
+          {/* <h2 className="text-xl font-semibold mb-4 mt-4">Heatmap</h2> */}
+          {/* Heatmap 컴포넌트 */}
           <TimeGridHeatmap
             dates={dates}
             timeBlocks={timeBlocks}
             voteData={voteData}
             totalParticipants={syncData.participants.length}
           />
-        </section>
-
-        <section className="mb-8">
-          <h2 className="text-xl font-semibold mb-4">Heatmap</h2>
         </section>
       </section>
 
@@ -242,29 +260,53 @@ function ErrorDisplay({ message }: { message: string }) {
   );
 }
 
-// 9am - 5pm every 30 minutes
-function getDefaultTimeBlocks() {
-  const blocks: string[] = [];
-  for (let hour = 9; hour <= 17; hour++) {
-    blocks.push(`${hour.toString().padStart(2, "0")}:00`);
-    // blocks.push(`${hour.toString().padStart(2, "0")}:30`);
+// Get all selected time blocks including the extended range
+function getAllSelectedTimeBlocks(timeOptions: SyncData["timeOptions"]) {
+  const blocks = new Set<string>();
+
+  // Add 9:00-17:00 in 30min increments
+  for (let hour = 9; hour < 17; hour++) {
+    blocks.add(`${hour.toString().padStart(2, "0")}:00`);
+    blocks.add(`${hour.toString().padStart(2, "0")}:30`);
   }
-  blocks.push("17:00");
-  return blocks;
-}
-
-// Get all time blocks from time options
-function getAllTimeBlocks(timeOptions: SyncData["timeOptions"]) {
-  const defaultBlocks = getDefaultTimeBlocks();
-  const userBlocks = new Set(defaultBlocks);
-
+  blocks.add('17:00');
+  
+  // Add any additional blocks from time options
   timeOptions.forEach(opt => {
-    // 09:00:00 -> 09:00 format change
-    const start = opt.startTime.slice(0, 5);
-    const end = opt.endTime.slice(0, 5);
-    userBlocks.add(start);
-    userBlocks.add(end);
+    const startTime = opt.startTime.slice(0, 5);
+    const endTime = opt.endTime.slice(0, 5);
+
+    blocks.add(startTime);
+
+    const startHour = parseInt(startTime.split(':')[0]);
+    const startMinute = parseInt(startTime.split(':')[1]);
+    const endHour = parseInt(endTime.split(':')[0]);
+    const endMinute = parseInt(endTime.split(':')[1]);
+
+    let currentHour = startHour;
+    let currentMinute = startMinute;
+
+    // Add blocks in 30min increments between start and end
+    while (
+      currentHour < endHour ||
+      (currentHour === endHour && currentMinute < endMinute)
+    ) {
+      currentMinute += 30;
+      if (currentMinute >= 60) {
+        currentHour += 1;
+        currentMinute = 0;
+      }
+
+      const timeStr = `${currentHour.toString().padStart(2, "0")}:${currentMinute.toString().padStart(2, "0")}`;
+      blocks.add(timeStr);
+    }
   });
 
-  return Array.from(userBlocks).sort();
+  return Array.from(blocks).sort((a, b) => {
+    const [aHour, aMinute] = a.split(':').map(Number);
+    const [bHour, bMinute] = b.split(':').map(Number);
+
+    if (aHour !== bHour) return aHour - bHour;
+    return aMinute - bMinute;
+  });
 }
