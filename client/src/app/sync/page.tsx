@@ -11,7 +11,7 @@ import DatePill from "@/components/sync/DatePill";
 import { Button } from "@/components/ui/button";
 import TimeZoneSelector from "@/components/sync/TimeZoneSelector";
 
-import { getUserTimeZone } from "@/lib/timezone-convert";
+import { getUserTimeZone } from "@/lib/timezoneConvert";
 
 import { createSync } from "./syncApi";
 

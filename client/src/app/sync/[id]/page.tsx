@@ -6,10 +6,13 @@ import { BombIcon, ClockIcon } from "lucide-react";
 
 import MostAvailableTimes from "@/components/sync/MostAvailableTimes";
 import TimeGridHeatmap from "@/components/sync/TimeGridHeatmap";
-import { Skeleton } from "@/components/ui/skeleton";
-import { Button } from "@/components/ui/button";
+import VoterDetails from "@/components/sync/VoterDetails";
+import LoadingSkeleton from "@/components/sync/LoadingSkeleton";
+import ErrorDisplay from "@/components/sync/ErrorDisplay";
+
 import { SyncData } from "@/types/sync";
 import { getSync } from "../syncApi";
+import { getAllSelectedTimeBlocks, createVoteDataMap } from "@/lib/timeUtils";
 
 export default function SyncView() {
   const params = useParams();
@@ -159,22 +162,7 @@ export default function SyncView() {
   // Get all time blocks including those outside the default range
   const timeBlocks = getAllSelectedTimeBlocks(syncData.timeOptions);
 
-  const voteData = new Map<string, number>();
-
-  syncData.timeOptions.forEach(opt => {
-    const startTime = opt.startTime.slice(0, 5);
-    const endTime = opt.endTime.slice(0, 5);
-    
-    const startIdx = timeBlocks.indexOf(startTime);
-    const endIdx = timeBlocks.indexOf(endTime);
-
-    if (startIdx !== -1 && endIdx !== -1) {
-      for (let i = startIdx; i <= endIdx; i++) {
-        const key = `${opt.date}_${timeBlocks[i]}`;
-        voteData.set(key, (voteData.get(key) || 0) + opt.votes.length);
-      }
-    }
-  });
+  const voteData = createVoteDataMap(syncData.timeOptions, timeBlocks);
 
   return (
     <main>
@@ -217,13 +205,21 @@ export default function SyncView() {
         </section>
 
         <section className="mb-8">
-          {/* <h2 className="text-xl font-semibold mb-4 mt-4">Heatmap</h2> */}
-          {/* Heatmap 컴포넌트 */}
+          {/* Heatmap component */}
           <TimeGridHeatmap
             dates={dates}
             timeBlocks={timeBlocks}
             voteData={voteData}
             totalParticipants={syncData.participants.length}
+          />
+        </section>
+
+        {/* Participant availability section */}
+        <section className="container mx-auto px-4 py-4 max-w-4xl mb-8">
+          <VoterDetails
+            syncData={syncData}
+            dates={dates}
+            timeBlocks={timeBlocks}
           />
         </section>
       </section>
@@ -233,80 +229,4 @@ export default function SyncView() {
       </section>
     </main>
   )
-}
-
-function LoadingSkeleton() {
-  return (
-    <div className="container mx-auto px-4 py-8 max-w-4xl">
-      <Skeleton className="h-10 w-3/4 mb-4" />
-      <Skeleton className="h-20 w-full mb-8" />
-      <Skeleton className="h-60 w-full mb-8" />
-      <Skeleton className="h-40 w-full" />
-    </div>
-  );
-}
-
-function ErrorDisplay({ message }: { message: string }) {
-  return (
-    <div className="container mx-auto px-4 py-8 max-w-4xl text-center">
-      <div className="bg-red-50 border border-red-20 text-red-700 px-4 py-8 rounded-md">
-        <h2 className="text-xl font-bold mb-2">Error</h2>
-        <p>{message}</p>
-        <Button variant="outline" className="mt-4" onClick={() => window.history.back()}>
-          Go Back
-        </Button>
-      </div>
-    </div>
-  );
-}
-
-// Get all selected time blocks including the extended range
-function getAllSelectedTimeBlocks(timeOptions: SyncData["timeOptions"]) {
-  const blocks = new Set<string>();
-
-  // Add 9:00-17:00 in 30min increments
-  for (let hour = 9; hour < 17; hour++) {
-    blocks.add(`${hour.toString().padStart(2, "0")}:00`);
-    blocks.add(`${hour.toString().padStart(2, "0")}:30`);
-  }
-  blocks.add('17:00');
-  
-  // Add any additional blocks from time options
-  timeOptions.forEach(opt => {
-    const startTime = opt.startTime.slice(0, 5);
-    const endTime = opt.endTime.slice(0, 5);
-
-    blocks.add(startTime);
-
-    const startHour = parseInt(startTime.split(':')[0]);
-    const startMinute = parseInt(startTime.split(':')[1]);
-    const endHour = parseInt(endTime.split(':')[0]);
-    const endMinute = parseInt(endTime.split(':')[1]);
-
-    let currentHour = startHour;
-    let currentMinute = startMinute;
-
-    // Add blocks in 30min increments between start and end
-    while (
-      currentHour < endHour ||
-      (currentHour === endHour && currentMinute < endMinute)
-    ) {
-      currentMinute += 30;
-      if (currentMinute >= 60) {
-        currentHour += 1;
-        currentMinute = 0;
-      }
-
-      const timeStr = `${currentHour.toString().padStart(2, "0")}:${currentMinute.toString().padStart(2, "0")}`;
-      blocks.add(timeStr);
-    }
-  });
-
-  return Array.from(blocks).sort((a, b) => {
-    const [aHour, aMinute] = a.split(':').map(Number);
-    const [bHour, bMinute] = b.split(':').map(Number);
-
-    if (aHour !== bHour) return aHour - bHour;
-    return aMinute - bMinute;
-  });
 }
