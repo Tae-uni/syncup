@@ -41,13 +41,16 @@ export interface CreateSyncFormData {
 
 // Get Sync data
 export interface SyncData {
-  id: string;
-  title: string;
-  description?: string;
-  timeZone: string;
-  expiresAt?: string; 
-  createdAt: string;
+  success: boolean;
+  data: {
+    id: string;
+    title: string;
+    description?: string;
+    timeZone: string;
+    expiresAt?: string; 
+    createdAt: string;
 
-  timeOptions: TimeOption[];
-  participants: Participant[];
+    timeOptions: TimeOption[];
+    participants: Participant[];
+  }
 }

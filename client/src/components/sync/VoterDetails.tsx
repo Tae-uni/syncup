@@ -1,11 +1,11 @@
 "use client";
 
-import { SyncData } from "@/types/sync";
 import { parse, format } from "date-fns";
 import { enUS } from "date-fns/locale";
+import { SyncData } from "@/types/sync";
 
 interface VoterDetailsProps {
-  syncData: SyncData;
+  syncData: SyncData['data'];
   dates: string[];
   timeBlocks: string[];
 }
@@ -15,6 +15,10 @@ export default function VoterDetails({
   dates,
   timeBlocks,
 }: VoterDetailsProps) {
+  if (!syncData.participants || syncData.participants.length === 0) {
+    return <p className="text-gray-500 italic">No participants yet</p>
+  }
+
   // Format date
   const formatDate = (date: string) => {
     const dateObj = parse(date, 'yyyy-MM-dd', new Date());
@@ -54,7 +58,6 @@ export default function VoterDetails({
 
   return (
     <div className="mt-8">
-      <h2 className="text-xl font-semibold mb-4">Participant Votes</h2>
       
       <div className="grid grid-cols-1 gap-4 sm:grid-cols-2 lg:grid-cols-3">
         {participantVotes.map(participant => (

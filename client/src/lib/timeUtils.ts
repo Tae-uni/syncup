@@ -1,7 +1,7 @@
 import { SyncData } from "@/types/sync";
 
 // Get all selected time blocks including the extended range
-export function getAllSelectedTimeBlocks(timeOptions: SyncData["timeOptions"]) {
+export function getAllSelectedTimeBlocks(timeOptions: SyncData["data"]["timeOptions"]) {
   const blocks = new Set<string>();
 
   // Add 9:00-17:00 in 30min increments
@@ -13,10 +13,15 @@ export function getAllSelectedTimeBlocks(timeOptions: SyncData["timeOptions"]) {
 
   // Add any additional blocks from time options
   timeOptions.forEach(opt => {
-    const startTime = opt.startTime.slice(0, 5);
-    const endTime = opt.endTime.slice(0, 5);
+    const startDate = new Date(opt.startTime);
+    const endDate = new Date(opt.endTime);
 
-    blocks.add(startTime);
+    // blocks.add(start);
+
+    if (isNaN(startDate.getTime()) || isNaN(endDate.getTime())) return;
+
+    const startTime = startDate.toTimeString().slice(0, 5);
+    const endTime = endDate.toTimeString().slice(0, 5);
 
     const startHour = parseInt(startTime.split(':')[0]);
     const startMinute = parseInt(startTime.split(':')[1]);
@@ -51,7 +56,7 @@ export function getAllSelectedTimeBlocks(timeOptions: SyncData["timeOptions"]) {
   });
 }
 
-export function createVoteDataMap(timeOptions: SyncData["timeOptions"], timeBlocks: string[]) {
+export function createVoteDataMap(timeOptions: SyncData["data"]["timeOptions"], timeBlocks: string[]) {
   const voteData = new Map<string, number>();
 
   timeOptions.forEach(opt => {
@@ -70,4 +75,26 @@ export function createVoteDataMap(timeOptions: SyncData["timeOptions"], timeBloc
   });
 
   return voteData;
+}
+
+export function formatDate(isoDateString: string) {
+  const date = new Date(isoDateString);
+  return date.toLocaleDateString('en-US', {
+    month: 'short',
+    day: 'numeric',
+    year: 'numeric',
+  });
+}
+
+export function formatTime(isoTimeString: string) {
+  const date = new Date(isoTimeString);
+  return date.toLocaleTimeString('en-US', {
+    hour: '2-digit',
+    minute: '2-digit',
+    hour12: false,
+  });
+}
+
+export function formatDateAndTime(isoString: string) {
+  return `${formatDate(isoString)} ${formatTime(isoString)}`;
 }

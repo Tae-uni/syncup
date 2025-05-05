@@ -1,8 +1,5 @@
 "use client";
 
-import { enUS } from "date-fns/locale";
-import { parse, format } from "date-fns";
-
 interface TimeGridHeatmapProps {
   dates: string[];
   timeBlocks: string[];
@@ -16,15 +13,25 @@ export default function TimeGridHeatmap({
   voteData,
   totalParticipants,
 }: TimeGridHeatmapProps) {
+  if (dates.length === 0 || voteData.size === 0) {
+    return <p className="text-gray-500 italic">No votes yet</p>
+  }
 
-  const formatDates = dates.map(date => {
-    const dateObj = parse(date, 'yyyy-MM-dd', new Date());
-    return {
-      monthDay: format(dateObj, 'MMM d', { locale: enUS }),
-      weekday: format(dateObj, 'EEE', { locale: enUS }),
-      original: date
-    };
-  });
+  const formatDates = dates
+    .filter(date => date && !isNaN(new Date(date).getTime()))
+    .map(date => {
+      const dateObj = new Date(date);
+      return {
+        monthDay: dateObj.toLocaleDateString('en-US', {
+          month: 'short',
+          day: 'numeric',
+        }),
+        weekday: dateObj.toLocaleDateString('en-US', {
+          weekday: 'short',
+        }),
+        original: date
+      };
+    });
 
   // Calculate color based on votes ratio
   const getColor = (votes: number) => {
@@ -77,6 +84,8 @@ export default function TimeGridHeatmap({
 
   // Max votes
   const maxVotes = Math.max(...Array.from(voteData.values()), 0);
+  console.log('Dates:', dates);
+  
 
   return (
     <div className="mt-8 space-y-2">
@@ -134,6 +143,8 @@ export default function TimeGridHeatmap({
             {formatDates.map((date, dateIdx) => {
               const key = `${date.original}_${time}`;
               const votes = voteData.get(key) || 0;
+              console.log("All timeBlocks:", timeBlocks);
+              console.log("All voteData:", Array.from(voteData.keys()));
 
               return (
                 <div
