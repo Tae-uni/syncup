@@ -22,7 +22,7 @@ export const createSync = async (data: SyncInput) => {
           const [endHour, endMinute] = time.endTime.split(':').map(Number);
           const endTime = new Date(baseDate);
           endTime.setHours(endHour, endMinute, 0, 0);
-          
+
           return {
             date: baseDate,
             startTime,
@@ -33,6 +33,24 @@ export const createSync = async (data: SyncInput) => {
     },
     include: {
       timeOptions: true,
+    }
+  });
+};
+
+export const getSyncById = async (id: string) => {
+  return prisma.sync.findUnique({
+    where: { id },
+    include: {
+      timeOptions: {
+        include: {
+          votes: true,
+        }
+      },
+      participants: {
+        include: {
+          votes: true
+        }
+      }
     }
   });
 };
