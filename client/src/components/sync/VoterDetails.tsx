@@ -2,6 +2,7 @@
 
 import { parse, format } from "date-fns";
 import { enUS } from "date-fns/locale";
+import { MdPersonAddAlt1 } from "react-icons/md";
 import { SyncData } from "@/types/sync";
 
 interface VoterDetailsProps {
@@ -16,7 +17,13 @@ export default function VoterDetails({
   timeBlocks,
 }: VoterDetailsProps) {
   if (!syncData.participants || syncData.participants.length === 0) {
-    return <p className="text-gray-500 italic">No participants yet</p>
+    return (
+      <div className="container flex flex-col justify-center items-center mx-auto px-4 py-44 max-w-4xl mb-2 bg-slate-100 rounded-lg">
+        <MdPersonAddAlt1 className="text-gray-400 text-4xl mb-2" />
+        <p className="text-lg">No participants yet</p>
+        <p className="text-gray-500 text-sm text-center">Share the link and invite people!</p>
+      </div>
+    )
   }
 
   // Format date

@@ -17,13 +17,13 @@ export default function MostAvailableTimes({
 }: MostAvailableTimesProps) {
   // If no participants, return
   if (totalParticipants === 0) {
-    return <p className="text-gray-500 italic">No participants yet</p>
+    return <p className="bg-[rgb(255,208,177)] rounded-lg py-2 px-3 text-sm">No participants yet, share the link and invite people!</p>
   }
 
   // If no votes, return
   const totalVotes = timeOptions.reduce((sum, opt) => sum + opt.votes.length, 0);
   if (totalVotes === 0) {
-    return <p className="text-gray-500 italic">No votes yet</p>
+    return <p className="bg-[#ff9248] text-white rounded-lg py-2 px-3">No votes yet, share the link and invite people!</p>
   }
 
   // Get the most available times

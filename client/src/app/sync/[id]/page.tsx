@@ -2,8 +2,8 @@
 
 import { useEffect, useState } from "react";
 import { useParams } from "next/navigation";
-import { BombIcon, ClockIcon } from "lucide-react";
-
+import { RiTimeLine } from "react-icons/ri";
+import { MdPeopleAlt, MdShare, MdTimer } from "react-icons/md";
 import MostAvailableTimes from "@/components/sync/MostAvailableTimes";
 import TimeGridHeatmap from "@/components/sync/TimeGridHeatmap";
 import VoterDetails from "@/components/sync/VoterDetails";
@@ -13,6 +13,7 @@ import ErrorDisplay from "@/components/sync/ErrorDisplay";
 import { SyncData } from "@/types/sync";
 import { getAllSelectedTimeBlocks, createVoteDataMap } from "@/lib/timeUtils";
 import { getSync } from "../syncApi";
+import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 
 export default function SyncView() {
   const params = useParams();
@@ -77,69 +78,72 @@ export default function SyncView() {
   return (
     <main>
       <header className="container mx-auto px-4 py-8 max-w-4xl">
-        <h1 className="text-4xl font-bold mb-8">{syncData.data.title}</h1>
+        <h1 className="text-4xl font-bold mb-2">{syncData.data.title}</h1>
         {syncData.data.description && (
-          <h2 className="text-lg font-medium mb-4">{syncData.data.description}</h2>
+          <h2 className="text-lg mb-6">{syncData.data.description}</h2>
         )}
-        <div className="py-1 text-sm font-mono">
-          <ClockIcon className="w-5 h-5 inline-block" /> {syncData.data.timeZone}
-          {syncData.data.expiresAt && (
-            <div className="font-mono">
-              <BombIcon className="w-5 h-5 inline-block" /> {new Date(syncData.data.expiresAt).toLocaleString()}
-            </div>
-          )}
+        <div className="text-sm space-x-2 text-gray-600">
+          <RiTimeLine className="w-5 h-5 inline-block" /> {syncData.data.timeZone}
+          <MdPeopleAlt className="w-5 h-5 inline-block" /> {syncData.data.participants?.length || 0} participants
+          <MdTimer className="w-5 h-5 inline-block" /> {syncData.data.expiresAt ? new Date(syncData.data.expiresAt).toLocaleString() : 'No expiration date'}
+          {/* TODO: Add share link */}
+          <MdShare className="w-5 h-5 inline-block" /> 
         </div>
       </header>
-      <hr className="mx-4" />
-      <section className="container mx-auto px-4 py-8 max-w-4xl">
-        <section className="mb-8">
-          <h2 className="text-xl font-semibold mb-4">{syncData.data.participants?.length || 0} Participants</h2>
-          {participantNames.length > 0 ? (
-            <ul className="list-disc list-inside pl-5">
-              {participantNames.map((p, index) => (
-                <li key={index}>{p.name}</li>
-              ))}
-            </ul>
-          ) : (
-            <p className="text-gray-500 italic">No participants yet</p>
-          )}
-        </section>
 
-        <section>
-          <h2 className="text-lg font-semibold mb-4">
-            Most available time
-          </h2>
-          {/* Most available time */}
-          <MostAvailableTimes
-            timeOptions={syncData.data.timeOptions || []}
-            totalParticipants={syncData.data.participants?.length || 0}
-            limit={2}
-          />
-          {/* Heatmap component */}
-        </section>
+      <section className="container mx-auto px-4 pt-4 max-w-4xl mb-1">
+        <Card>
+          <CardHeader className="rounded-t-xl">
+            <CardTitle className="text-lg font-semibold">
+              Most available time
+            </CardTitle>
+          </CardHeader>
+          <CardContent>
+            {/* Most available time */}
+            <MostAvailableTimes
+              timeOptions={syncData.data.timeOptions || []}
+              totalParticipants={syncData.data.participants?.length || 0}
+              limit={2}
+            />
+          </CardContent>
+        </Card>
+      </section>
 
-        <section className="mb-8">
-          <h2 className="text-lg font-semibold mb-4">
-            Detailed availability
-          </h2>
-          {/* Heatmap component */}
-          <TimeGridHeatmap
-            dates={dates}
-            timeBlocks={timeBlocks}
-            voteData={voteData}
-            totalParticipants={syncData.data.participants?.length || 0}
-          />
-        </section>
+      <section className="container mx-auto px-4 py-4 max-w-4xl mb-2">
+        <Card>
+          <CardHeader className="rounded-t-xl">
+            <CardTitle className="text-lg font-semibold">
+              Detailed availability
+            </CardTitle>
+          </CardHeader>
+          <CardContent>
+            {/* Heatmap component */}
+            <TimeGridHeatmap
+              dates={dates}
+              timeBlocks={timeBlocks}
+              voteData={voteData}
+              totalParticipants={syncData.data.participants?.length || 0}
+            />
+          </CardContent>
+        </Card>
+      </section>
 
-        {/* Participant availability section */}
-        <section className="container mx-auto px-4 py-4 max-w-4xl mb-8">
-          <h2 className="text-lg font-semibold mb-4">Participant Votes</h2>
-          <VoterDetails
-            syncData={syncData.data}
-            dates={dates}
-            timeBlocks={timeBlocks}
-          />
-        </section>
+      {/* Participant availability section */}
+      <section className="container mx-auto px-4 py-4 max-w-4xl mb-2">
+        <Card>
+          <CardHeader className="rounded-t-xl">
+            <CardTitle className="text-lg font-semibold mb-2">
+              Participant Votes
+            </CardTitle>
+          </CardHeader>
+          <CardContent>
+            <VoterDetails
+              syncData={syncData.data}
+              dates={dates}
+              timeBlocks={timeBlocks}
+            />
+          </CardContent>
+        </Card>
       </section>
 
       <section>

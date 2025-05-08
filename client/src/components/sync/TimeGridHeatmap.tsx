@@ -1,5 +1,7 @@
 "use client";
 
+import { MdErrorOutline } from "react-icons/md";
+
 interface TimeGridHeatmapProps {
   dates: string[];
   timeBlocks: string[];
@@ -14,7 +16,14 @@ export default function TimeGridHeatmap({
   totalParticipants,
 }: TimeGridHeatmapProps) {
   if (dates.length === 0 || voteData.size === 0) {
-    return <p className="text-gray-500 italic">No votes yet</p>
+    return (
+      <div className="container flex flex-col justify-center items-center mx-auto px-4 py-44 max-w-4xl mb-2 bg-slate-100 rounded-lg">
+        <MdErrorOutline className="text-gray-400 text-4xl mb-2" />
+        <p className="text-lg">No votes yet</p>
+        <p className="text-gray-500 text-sm text-center">Whenever participants vote, will show the results</p>
+      </div>
+    )
+
   }
 
   const formatDates = dates
@@ -85,7 +94,7 @@ export default function TimeGridHeatmap({
   // Max votes
   const maxVotes = Math.max(...Array.from(voteData.values()), 0);
   console.log('Dates:', dates);
-  
+
 
   return (
     <div className="mt-8 space-y-2">
@@ -97,9 +106,9 @@ export default function TimeGridHeatmap({
           </div>
           <div className="w-48 h-6 flex rounded overflow-hidden border border-gray-300">
             {getColorDistribution().map((item, idx) => (
-              <div 
-                key={idx} 
-                className={`${item.color} h-full relative hover:brightness-95 transition-all`} 
+              <div
+                key={idx}
+                className={`${item.color} h-full relative hover:brightness-95 transition-all`}
                 style={{ width: `${item.widthPercent}%` }}
                 title={item.label}
               >
