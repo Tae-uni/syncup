@@ -20,6 +20,7 @@ model Sync {
   timeZone    String    @default("UTC")
   expiresAt   DateTime?
   createdAt   DateTime  @default(now())
+  updatedAt   DateTime  @updatedAt
 
   timeOptions  TimeOption[]
   participants Participant[]
@@ -35,10 +36,13 @@ model TimeOption {
   endTime                DateTime
   createdByParticipantId String?
   createdAt              DateTime @default(now())
+  updatedAt              DateTime @updatedAt
 
   sync      Sync         @relation(fields: [syncId], references: [id], onDelete: Cascade)
   createdBy Participant? @relation(fields: [createdByParticipantId], references: [id], onDelete: SetNull)
   votes     Vote[]
+
+  @@index([syncId, date])
 }
 
 model Participant {
@@ -50,6 +54,8 @@ model Participant {
   sync       Sync         @relation(fields: [syncId], references: [id], onDelete: Cascade)
   votes      Vote[]
   TimeOption TimeOption[]
+
+  @@unique([syncId, name])
 }
 
 model Vote {
@@ -62,4 +68,5 @@ model Vote {
   timeOption  TimeOption  @relation(fields: [timeOptionId], references: [id], onDelete: Cascade)
 
   @@unique([participantId, timeOptionId])
+  @@index([timeOptionId])
 }
