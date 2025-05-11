@@ -2,17 +2,19 @@ import { enUS } from "date-fns/locale";
 import { format } from "date-fns";
 
 import { SyncData } from "@/types/sync";
-import { formatInTimeZone } from "@/lib/timezoneConvert";
+import { formatTimeInTimeZone } from "@/lib/timezoneConvert";
 
 interface MostAvailableTimesProps {
-  timeOptions: SyncData["data"]["timeOptions"];
+  timeOptions: SyncData["data"]["sync"]["timeOptions"];
   totalParticipants: number;
+  timeZone: string;
   limit?: number;
 }
 
 export default function MostAvailableTimes({
   timeOptions,
   totalParticipants,
+  timeZone,
   limit = 2
 }: MostAvailableTimesProps) {
   // If no participants, return
@@ -34,13 +36,10 @@ export default function MostAvailableTimes({
     const date = new Date(dateStr);
     const formattedDate = format(date, "MMM d, yyyy", { locale: enUS });
     return formattedDate;
-    // const date = parse(dateStr, "yyyy-MM-dd", new Date());
-    // return format(date, "MMM d, yyyy", { locale: enUS });
   }
 
-  function formatTime(timeStr: string) {
-    // return timeStr.slice(0, 5);
-    return formatInTimeZone(timeStr, "UTC").slice(0, 5);
+  function formatTime(timeStr: string, timeZone: string) {
+    return formatTimeInTimeZone(timeStr, timeZone).slice(0, 5);
   }
 
   return (
@@ -55,7 +54,7 @@ export default function MostAvailableTimes({
               <div>
                 <h4 className="font-medium">{formatDate(time.date)}</h4>
                 <p className="text-gray-600">
-                  {formatTime(time.startTime)} - {formatTime(time.endTime)}
+                  {formatTime(time.startTime, timeZone)} - {formatTime(time.endTime, timeZone)}
                 </p>
               </div>
               <div className="text-right">
@@ -82,7 +81,7 @@ export default function MostAvailableTimes({
 }
 
 function getMostAvailableTimes(
-  timeOptions: SyncData["data"]["timeOptions"],
+  timeOptions: SyncData["data"]["sync"]["timeOptions"],
   totalParticipants: number,
   limit?: number
 ) {

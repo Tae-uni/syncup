@@ -1,22 +1,22 @@
 "use client";
 
-import { parse, format } from "date-fns";
-import { enUS } from "date-fns/locale";
 import { MdPersonAddAlt1 } from "react-icons/md";
 import { SyncData } from "@/types/sync";
+import { formatTimeInTimeZone } from "@/lib/timezoneConvert";
+import { formatDateInTimeZone } from "@/lib/timezoneConvert";
 
 interface VoterDetailsProps {
   syncData: SyncData['data'];
-  dates: string[];
-  timeBlocks: string[];
+  timeZone: string;
 }
 
 export default function VoterDetails({
   syncData,
-  dates,
-  timeBlocks,
+  timeZone,
 }: VoterDetailsProps) {
-  if (!syncData.participants || syncData.participants.length === 0) {
+  const { sync } = syncData;
+
+  if (!sync.participants || sync.participants.length === 0) {
     return (
       <div className="container flex flex-col justify-center items-center mx-auto px-4 py-44 max-w-4xl mb-2 bg-slate-100 rounded-lg">
         <MdPersonAddAlt1 className="text-gray-400 text-4xl mb-2" />
@@ -26,28 +26,18 @@ export default function VoterDetails({
     )
   }
 
-  // Format date
-  const formatDate = (date: string) => {
-    const dateObj = parse(date, 'yyyy-MM-dd', new Date());
-    return format(dateObj, 'EEE, MMM d', { locale: enUS });
-  };
-
-  const formatTime = (time: string) => {
-    return time; 
-  };
-
   // Get participant votes data
   const getParticipantVotes = () => {
-    return syncData.participants.map(participant => {
+    return sync.participants.map(participant => {
       // Get time options voted by the participant
-      const votedOptions = syncData.timeOptions.filter(opt => 
+      const votedOptions = sync.timeOptions.filter(opt => 
         opt.votes.some(vote => vote.participantId === participant.id)
       );
       
       const formattedVotes = votedOptions.map(opt => {
-        const date = formatDate(opt.date);
-        const startTime = formatTime(opt.startTime.slice(0, 5));
-        const endTime = formatTime(opt.endTime.slice(0, 5));
+        const date = formatDateInTimeZone(opt.date, timeZone);
+        const startTime = formatTimeInTimeZone(opt.startTime, timeZone);
+        const endTime = formatTimeInTimeZone(opt.endTime, timeZone);
         
         return `${date} ${startTime}-${endTime}`;
       });

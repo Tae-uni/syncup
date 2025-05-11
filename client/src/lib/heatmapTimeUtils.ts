@@ -1,7 +1,7 @@
 import { SyncData } from "@/types/sync";
 
 // Get all selected time blocks including the extended range
-export function getAllSelectedTimeBlocks(timeOptions: SyncData["data"]["timeOptions"]) {
+export function getAllSelectedTimeBlocks(timeOptions: SyncData["data"]["sync"]["timeOptions"]) {
   const blocks = new Set<string>();
 
   // Add 9:00-17:00 in 30min increments
@@ -56,7 +56,7 @@ export function getAllSelectedTimeBlocks(timeOptions: SyncData["data"]["timeOpti
   });
 }
 
-export function createVoteDataMap(timeOptions: SyncData["data"]["timeOptions"], timeBlocks: string[]) {
+export function createVoteDataMap(timeOptions: SyncData["data"]["sync"]["timeOptions"], timeBlocks: string[]) {
   const voteData = new Map<string, number>();
 
   timeOptions.forEach(opt => {
@@ -75,26 +75,4 @@ export function createVoteDataMap(timeOptions: SyncData["data"]["timeOptions"], 
   });
 
   return voteData;
-}
-
-export function formatDate(isoDateString: string) {
-  const date = new Date(isoDateString);
-  return date.toLocaleDateString('en-US', {
-    month: 'short',
-    day: 'numeric',
-    year: 'numeric',
-  });
-}
-
-export function formatTime(isoTimeString: string) {
-  const date = new Date(isoTimeString);
-  return date.toLocaleTimeString('en-US', {
-    hour: '2-digit',
-    minute: '2-digit',
-    hour12: false,
-  });
-}
-
-export function formatDateAndTime(isoString: string) {
-  return `${formatDate(isoString)} ${formatTime(isoString)}`;
 }

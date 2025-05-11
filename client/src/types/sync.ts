@@ -43,6 +43,7 @@ export interface CreateSyncFormData {
 export interface SyncData {
   success: boolean;
   data: {
+    sync: {
     id: string;
     title: string;
     description?: string;
@@ -52,5 +53,7 @@ export interface SyncData {
 
     timeOptions: TimeOption[];
     participants: Participant[];
+    }
+    votes: Record<string, string[]>;
   }
 }

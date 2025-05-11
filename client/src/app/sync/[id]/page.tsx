@@ -4,16 +4,16 @@ import { useEffect, useState } from "react";
 import { useParams } from "next/navigation";
 import { RiTimeLine } from "react-icons/ri";
 import { MdPeopleAlt, MdShare, MdTimer } from "react-icons/md";
+import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import MostAvailableTimes from "@/components/sync/MostAvailableTimes";
 import TimeGridHeatmap from "@/components/sync/TimeGridHeatmap";
 import VoterDetails from "@/components/sync/VoterDetails";
 import LoadingSkeleton from "@/components/sync/LoadingSkeleton";
 import ErrorDisplay from "@/components/sync/ErrorDisplay";
 
+import { getAllSelectedTimeBlocks, createVoteDataMap } from "@/lib/heatmapTimeUtils";
 import { SyncData } from "@/types/sync";
-import { getAllSelectedTimeBlocks, createVoteDataMap } from "@/lib/timeUtils";
 import { getSync } from "../syncApi";
-import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 
 export default function SyncView() {
   const params = useParams();
@@ -60,32 +60,35 @@ export default function SyncView() {
     return <ErrorDisplay message="Sync not found" />
   }
 
-  console.log('syncData-title:', syncData.data.title);
-  type ParticipantNameOnly = Pick<SyncData['data']['participants'][number], 'name'>;
-  const participantNames: ParticipantNameOnly[] = (syncData.data.participants?.map(p => ({ name: p.name }))) || [];
+  const { sync } = syncData.data;
 
-  const dates = Array.from(new Set(
-    syncData.data.timeOptions?.map(opt => {
-      return new Date(opt.date).toISOString().split('T')[0];
-    }) || []
-  ));
+  // type ParticipantNameOnly = Pick<SyncData['data']['sync']['participants'][number], 'name'>;
+  // const participantNames: ParticipantNameOnly[] = (sync.participants?.map(p => ({ name: p.name }))) || [];
+
+
+  // Get all unique dates from the time options
+  // const dates = Array.from(new Set(
+  //   sync.timeOptions?.map(opt => {
+  //     return new Date(opt.date).toISOString().split('T')[0];
+  //   }) || []
+  // ));
 
   // Get all time blocks including those outside the default range
-  const timeBlocks = getAllSelectedTimeBlocks(syncData.data.timeOptions || []);
+  // const timeBlocks = getAllSelectedTimeBlocks(sync.timeOptions || []);
 
-  const voteData = createVoteDataMap(syncData.data.timeOptions || [], timeBlocks);
+  // const voteData = createVoteDataMap(sync.timeOptions || [], timeBlocks);
 
   return (
     <main>
       <header className="container mx-auto px-4 py-8 max-w-4xl">
-        <h1 className="text-4xl font-bold mb-2">{syncData.data.title}</h1>
-        {syncData.data.description && (
-          <h2 className="text-lg mb-6">{syncData.data.description}</h2>
+        <h1 className="text-4xl font-bold mb-2">{sync.title}</h1>
+        {sync.description && (
+          <h2 className="text-lg mb-6">{sync.description}</h2>
         )}
         <div className="text-sm space-x-2 text-gray-600">
-          <RiTimeLine className="w-5 h-5 inline-block" /> {syncData.data.timeZone}
-          <MdPeopleAlt className="w-5 h-5 inline-block" /> {syncData.data.participants?.length || 0} participants
-          <MdTimer className="w-5 h-5 inline-block" /> {syncData.data.expiresAt ? new Date(syncData.data.expiresAt).toLocaleString() : 'No expiration date'}
+          <RiTimeLine className="w-5 h-5 inline-block" /> {sync.timeZone}
+          <MdPeopleAlt className="w-5 h-5 inline-block" /> {sync.participants?.length || 0} participants
+          <MdTimer className="w-5 h-5 inline-block" /> {sync.expiresAt ? new Date(sync.expiresAt).toLocaleString() : 'No expiration date'}
           {/* TODO: Add share link */}
           <MdShare className="w-5 h-5 inline-block" /> 
         </div>
@@ -101,14 +104,16 @@ export default function SyncView() {
           <CardContent>
             {/* Most available time */}
             <MostAvailableTimes
-              timeOptions={syncData.data.timeOptions || []}
-              totalParticipants={syncData.data.participants?.length || 0}
+              timeOptions={sync.timeOptions || []}
+              totalParticipants={sync.participants?.length || 0}
+              timeZone={sync.timeZone}
               limit={2}
             />
           </CardContent>
         </Card>
       </section>
 
+      {/* Heatmap component
       <section className="container mx-auto px-4 py-4 max-w-4xl mb-2">
         <Card>
           <CardHeader className="rounded-t-xl">
@@ -117,16 +122,16 @@ export default function SyncView() {
             </CardTitle>
           </CardHeader>
           <CardContent>
-            {/* Heatmap component */}
             <TimeGridHeatmap
               dates={dates}
               timeBlocks={timeBlocks}
               voteData={voteData}
-              totalParticipants={syncData.data.participants?.length || 0}
+              totalParticipants={sync.participants?.length || 0}
             />
           </CardContent>
         </Card>
       </section>
+      */}
 
       {/* Participant availability section */}
       <section className="container mx-auto px-4 py-4 max-w-4xl mb-2">
@@ -139,8 +144,7 @@ export default function SyncView() {
           <CardContent>
             <VoterDetails
               syncData={syncData.data}
-              dates={dates}
-              timeBlocks={timeBlocks}
+              timeZone={sync.timeZone}
             />
           </CardContent>
         </Card>

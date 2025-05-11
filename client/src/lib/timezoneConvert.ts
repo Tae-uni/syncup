@@ -28,10 +28,15 @@ export function convertToUTC(dateStr: string, timeStr: string, timeZone: string)
   return localDate.toISOString();
 }
 
-export function formatInTimeZone(utcDate: Date | string, timeZone: string): string {
-  const date = typeof utcDate === 'string' ? new Date(utcDate) : utcDate;
+/**
+ * Format a date in a specific timezone
+ * @param date - The date to format (Date or string)
+ * @param timeZone - The timezone (e.g. "Asia/Seoul")
+ * @returns Formatted date string (HH:MM)
+ */
 
-  return date.toLocaleString("en-US", { 
+export function formatTimeInTimeZone(utcDate: Date | string, timeZone: string): string {
+  return new Date(utcDate).toLocaleString("en-US", { 
     timeZone,
     hour: '2-digit',
     minute: '2-digit',
@@ -47,12 +52,10 @@ export function formatInTimeZone(utcDate: Date | string, timeZone: string): stri
  */
 
 export function formatDateInTimeZone(utcDate: Date | string, timeZone: string): string {
-  const date = typeof utcDate === 'string' ? new Date(utcDate) : utcDate;
-
-  return date.toLocaleString("en-US", {
+  return new Date(utcDate).toLocaleString("en-US", {
     timeZone,
-    year: 'numeric',
-    month: '2-digit',
-    day: '2-digit',
+    weekday: 'short',
+    month: 'short',
+    day: 'numeric',
   });
 }
