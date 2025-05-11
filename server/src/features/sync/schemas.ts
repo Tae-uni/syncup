@@ -28,5 +28,25 @@ export const syncInputSchema = z.object({
   timeSelector: z.array(timeSelectorSchema).min(1, "At least one time selector is required"),
 });
 
+export const voteSchema = {
+  // Submit vote
+  submit: z.object({
+    participantName: z.string()
+      .min(1, "Name is required")
+      .max(50, "Name is too long"),
+    timeOptionIds: z.array(z.string().uuid())
+      .min(1, "At least one time option is required"),
+  }),
+
+  // Cancel vote
+  cancel: z.object({
+    participantName: z.string()
+      .min(1, "Name is required")
+      .max(50, "Name is too long"),
+  }),
+};
+
 export type TimeSelector = z.infer<typeof timeSelectorSchema>;
 export type SyncInput = z.infer<typeof syncInputSchema>;
+export type VoteInput = z.infer<typeof voteSchema.submit>;
+export type CancelVoteInput = z.infer<typeof voteSchema.cancel>;

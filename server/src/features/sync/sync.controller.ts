@@ -1,5 +1,7 @@
-import { Request, Response } from "express";
-import { createSync, getSyncById } from "./service";
+import { Request, Response, NextFunction } from "express";
+import { createSync, getSyncById } from "./sync.service";
+import { VoteService } from "./vote.service";
+
 
 export const create = async (req: Request, res: Response) => {
   try {
@@ -23,29 +25,32 @@ export const create = async (req: Request, res: Response) => {
   }
 };
 
-export const getSync = async (req: Request, res: Response) => {
+export const getSync = async (
+  req: Request<{ id: string }>,
+  res: Response,
+  next: NextFunction
+) => {
   try {
-    const { id } = req.params;
+    const { id: syncId } = req.params;
 
-    if (!id) {
+    const [sync, votes] = await Promise.all([
+      getSyncById(syncId),
+      VoteService.getVotes(syncId),
+    ]);
+
+    if (!sync) {
       return res.status(400).json({
         success: false,
         error: 'Sync ID is required',
       })
     }
 
-    const sync = await getSyncById(id);
-
-    if (!sync) {
-      return res.status(404).json({
-        success: false,
-        error: 'Sync not found',
-      })
-    }
-
     res.status(200).json({
       success: true,
-      data: sync,
+      data: {
+        sync,
+        votes,
+      },
     });
   } catch (error) {
     console.error('Error fetching sync:', error);
