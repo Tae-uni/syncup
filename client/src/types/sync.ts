@@ -27,6 +27,20 @@ export interface Vote {
   createdAt: string;
 }
 
+export interface VoteSubmitData {
+  participantName: string;
+  timeOptionIds: string[];
+}
+
+// export interface VoteSubmitResponse {
+//   success: boolean;
+//   data?: {
+//     participant: Participant;
+//     votes: Vote[];
+//   };
+//   error?: string;
+// }
+
 // Create Sync form data
 export interface CreateSyncFormData {
   title: string;

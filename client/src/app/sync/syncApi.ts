@@ -1,4 +1,4 @@
-import { CreateSyncFormData, SyncData } from "@/types/sync";
+import { CreateSyncFormData, SyncData, VoteSubmitData } from "@/types/sync";
 
 export async function createSync(formData: CreateSyncFormData) {
   try {
@@ -65,6 +65,36 @@ export async function getSync(id: string): Promise<{ success: boolean, data?: Sy
     return {
       success: false,
       error: error instanceof Error ? error.message : 'Failed to fetch sync'
+    };
+  }
+}
+
+export async function submitVote(syncId: string, data: VoteSubmitData): Promise<{ success: boolean, data?: SyncData, error?: string }> {
+  try {
+    const response = await fetch(`http://localhost:5002/api/sync/${syncId}/votes`, {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json',
+      },
+      body: JSON.stringify({
+        participantName: data.participantName,
+        timeOptionIds: data.timeOptionIds
+      }),
+    });
+
+    if (!response.ok) {
+      const errorData = await response.json();
+      throw new Error(errorData.message || 'Failed to submit vote');
+    }
+
+    const result = await response.json();
+    return { success: true, data: result };
+
+  } catch (error) {
+    console.error('Error submitting vote:', error);
+    return {
+      success: false,
+      error: error instanceof Error ? error.message : 'Failed to submit vote'
     };
   }
 }
