@@ -6,7 +6,7 @@ export async function createSync(formData: CreateSyncFormData) {
       const dataStr = item.date.toISOString().split('T')[0];
 
       return {
-        date: dataStr, 
+        date: dataStr,
         startTime: item.startTime,
         endTime: item.endTime,
       };
@@ -95,6 +95,32 @@ export async function submitVote(syncId: string, data: VoteSubmitData): Promise<
     return {
       success: false,
       error: error instanceof Error ? error.message : 'Failed to submit vote'
+    };
+  }
+}
+
+export async function cancelVote(syncId: string, participantName: string): Promise<{ success: boolean, data?: SyncData, error?: string }> {
+  try {
+    const response = await fetch(`http://localhost:5002/api/sync/${syncId}/votes`, {
+      method: 'DELETE',
+      headers: {
+        'Content-Type': 'application/json',
+      },
+      body: JSON.stringify({ participantName }),
+    });
+
+    if (!response.ok) {
+      const errorData = await response.json();
+      throw new Error(errorData.message || 'Failed to cancel vote');
+    }
+
+    const result = await response.json();
+    return { success: true, data: result};
+  } catch (error) {    
+    console.error('Error cancelling vote:', error);
+    return {
+      success: false,
+      error: error instanceof Error ? error.message : 'Failed to cancel vote'
     };
   }
 }

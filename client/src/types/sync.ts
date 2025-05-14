@@ -30,6 +30,7 @@ export interface Vote {
 export interface VoteSubmitData {
   participantName: string;
   timeOptionIds: string[];
+  cancel?: boolean;
 }
 
 // export interface VoteSubmitResponse {

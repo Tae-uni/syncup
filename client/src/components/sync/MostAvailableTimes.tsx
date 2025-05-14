@@ -19,13 +19,13 @@ export default function MostAvailableTimes({
 }: MostAvailableTimesProps) {
   // If no participants, return
   if (totalParticipants === 0) {
-    return <p className="bg-[rgb(255,208,177)] rounded-lg py-2 px-3 text-sm">No participants yet, share the link and invite people!</p>
+    return <p className="bg-orange-100 text-orange-700 rounded-lg py-2 px-3 text-sm">No participants yet, share the link and invite people!</p>
   }
 
   // If no votes, return
   const totalVotes = timeOptions.reduce((sum, opt) => sum + opt.votes.length, 0);
   if (totalVotes === 0) {
-    return <p className="bg-[#ff9248] text-white rounded-lg py-2 px-3">No votes yet, share the link and invite people!</p>
+    return <p className="bg-orange-100 text-orange-700 rounded-lg py-2 px-3">No votes yet, share the link and invite people!</p>
   }
 
   // Get the most available times
@@ -34,7 +34,7 @@ export default function MostAvailableTimes({
   // Format the date (remove seconds)
   function formatDate(dateStr: string) {
     const date = new Date(dateStr);
-    const formattedDate = format(date, "MMM d, yyyy", { locale: enUS });
+    const formattedDate = format(date, "EEEE, MMMM d, yyyy", { locale: enUS });
     return formattedDate;
   }
 
@@ -52,13 +52,13 @@ export default function MostAvailableTimes({
           >
             <div className="flex justify-between items-center">
               <div>
-                <h4 className="font-medium">{formatDate(time.date)}</h4>
-                <p className="text-gray-600">
+                <h4 className="font-medium text-md">{formatDate(time.date)}</h4>
+                <p className="text-gray-600 text-sm">
                   {formatTime(time.startTime, timeZone)} - {formatTime(time.endTime, timeZone)}
                 </p>
               </div>
               <div className="text-right">
-                <div className="text-xl font-bold text-blue-600">
+                <div className="text-lg font-bold text-teal-600">
                   {time.percentage}%
                 </div>
                 <div className="text-sm text-gray-500">
@@ -69,9 +69,10 @@ export default function MostAvailableTimes({
 
             {/* Progress bar */}
             <div className="mt-2 w-full bg-gray-200 rounded-full h-2">
-              <div className="bg-blue-600 h-2 rounded-full" style={{ width: `${time.percentage}%` }}>
-
-              </div>
+              <div
+                className={`h-2 rounded-full ${time.percentage > 80 ? 'bg-gradient-to-r from-teal-500 to-orange-400' : 'bg-teal-500'}`}
+                style={{ width: `${time.percentage}%` }}
+              />
             </div>
           </div>
         ))}
