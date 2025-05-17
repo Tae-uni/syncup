@@ -3,10 +3,9 @@ import { z } from "zod";
 const isValidTimeZone = (tz: string) => {
   try {
     new Intl.DateTimeFormat(undefined, { timeZone: tz });
-    console.log(`Valid time zone: ${tz}`);
     return true;
   } catch (error) {
-    console.log(`Invalid time zone: ${tz}`, error);
+    console.error(`Invalid time zone: ${tz}`, error);
     return false;
   }
 }
@@ -15,8 +14,8 @@ export const timeSelectorSchema = z.object({
   date: z.string().refine(val => !isNaN(new Date(val).getTime()), {
     message: "Invalid date",
   }),
-  startTime: z.string().regex(/^\d{1,2}:\d{2}$/, "Invalid start time"),
-  endTime: z.string().regex(/^\d{1,2}:\d{2}$/, "Invalid end time"),
+  startTime: z.string().regex(/^\d{4}-\d{2}-\d{2}T\d{2}:\d{2}:\d{2}(?:\.\d{3})?Z$/, "Invalid start time"),
+  endTime: z.string().regex(/^\d{4}-\d{2}-\d{2}T\d{2}:\d{2}:\d{2}(?:\.\d{3})?Z$/, "Invalid end time"),
 });
 
 export const syncInputSchema = z.object({

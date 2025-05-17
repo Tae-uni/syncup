@@ -1,14 +1,19 @@
+import { convertToUTC } from "@/lib/timezoneConvert";
 import { CreateSyncFormData, SyncData, VoteSubmitData } from "@/types/sync";
 
 export async function createSync(formData: CreateSyncFormData) {
   try {
     const timeSelector = formData.timeSelector.map(item => {
-      const dataStr = item.date.toISOString().split('T')[0];
+      const dateStr = item.date.toISOString().split('T')[0];
+
+      const startInUTC = convertToUTC(dateStr, item.startTime, formData.timeZone);
+      const endInUTC = convertToUTC(dateStr, item.endTime, formData.timeZone);
 
       return {
-        date: dataStr,
-        startTime: item.startTime,
-        endTime: item.endTime,
+        date: dateStr,
+        startTime: startInUTC,
+        endTime: endInUTC,
+        // originalTimeZone: formData.timeZone,
       };
     });
 
@@ -31,6 +36,7 @@ export async function createSync(formData: CreateSyncFormData) {
 
     if (!response.ok) {
       const errorData = await response.json();
+      console.error('Server error details:', errorData);
       throw new Error(errorData.message || 'Failed to create sync');
     }
 
