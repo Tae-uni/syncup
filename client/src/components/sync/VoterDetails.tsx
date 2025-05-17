@@ -3,17 +3,19 @@
 import { useState } from "react";
 import { MdKeyboardArrowDown, MdKeyboardArrowUp, MdPersonAdd, MdPersonAddAlt1 } from "react-icons/md";
 
-import { formatTimeInTimeZone, formatDateInTimeZone } from "@/lib/timezoneConvert";
+import { timezoneUtils } from "@/lib/timezoneConvert";
 import { SyncData } from "@/types/sync";
 
 interface VoterDetailsProps {
   syncData: SyncData['data'];
   timeZone: string;
+  showLocalTime: boolean;
 }
 
 export default function VoterDetails({
   syncData,
   timeZone,
+  showLocalTime
 }: VoterDetailsProps) {
   const [isExpanded, setIsExpanded] = useState(false);
   const { sync } = syncData;
@@ -41,10 +43,11 @@ export default function VoterDetails({
       );
 
       const formattedVotes = votedOptions.map(opt => {
-        const date = formatDateInTimeZone(opt.date, timeZone);
-        const startTime = formatTimeInTimeZone(opt.startTime, timeZone);
-        const endTime = formatTimeInTimeZone(opt.endTime, timeZone);
+        const date = timezoneUtils.formatDate(opt.startTime, timeZone, showLocalTime);
+        const startTime = timezoneUtils.formatTime(opt.startTime, timeZone, showLocalTime);
+        const endTime = timezoneUtils.formatTime(opt.endTime, timeZone, showLocalTime);
 
+        console.log(`date: ${date}, startTime: ${startTime}, endTime: ${endTime}`);
         return `${date} / ${startTime}-${endTime}`;
       });
 
