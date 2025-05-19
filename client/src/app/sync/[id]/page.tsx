@@ -3,7 +3,7 @@
 import { useCallback, useEffect, useState } from "react";
 import { useParams } from "next/navigation";
 import { RiTimeLine } from "react-icons/ri";
-import { MdHowToVote, MdOutlineCalendarMonth, MdPeopleAlt, MdShare, MdTimer } from "react-icons/md";
+import { MdAccessTime, MdHowToVote, MdOutlineCalendarMonth, MdPeopleAlt, MdShare, MdTimer } from "react-icons/md";
 import { Card, CardContent } from "@/components/ui/card";
 import MostAvailableTimes from "@/components/sync/MostAvailableTimes";
 import TimeGridHeatmap from "@/components/sync/TimeGridHeatmap";
@@ -15,6 +15,7 @@ import VoteForm from "@/components/sync/VoteForm";
 import { getAllSelectedTimeBlocks, createVoteDataMap } from "@/lib/heatmapTimeUtils";
 import { SyncData, VoteSubmitData } from "@/types/sync";
 import { getSync, submitVote, cancelVote } from "../syncApi";
+import { Switch } from "@/components/ui/switch";
 
 export default function SyncView() {
   const params = useParams();
@@ -23,6 +24,7 @@ export default function SyncView() {
   const [loading, setLoading] = useState(true);
   const [syncData, setSyncData] = useState<SyncData | null>(null);
   const [error, setError] = useState<string | null>(null);
+  const [showLocalTime, setShowLocalTime] = useState(false);
 
   const fetchSyncData = useCallback(async () => {
     setLoading(true);
@@ -84,6 +86,17 @@ export default function SyncView() {
               <span><RiTimeLine className="inline mr-1" />{sync.timeZone}</span>
               <span><MdPeopleAlt className="inline mr-1" />{sync.participants?.length || 0} Participants</span>
               <span><MdTimer className="inline mr-1" />Expires: {sync.expiresAt ? new Date(sync.expiresAt).toLocaleDateString() : 'No expiration'}</span>
+              <div className="flex items-center gap-2">
+                <MdAccessTime className="text-gray-500" />
+                <div className="flex items-center gap-2">
+                  <span className="text-sm text-gray-600">Show local time</span>
+                  <Switch
+                    checked={showLocalTime}
+                    onCheckedChange={setShowLocalTime}
+                    className="data-[state=checked]:bg-teal-500"
+                  />
+                </div>
+              </div>
               <button className="ml-auto"><MdShare className="inline" /></button>
             </div>
           </header>
@@ -100,6 +113,7 @@ export default function SyncView() {
               timeOptions={sync.timeOptions || []}
               totalParticipants={sync.participants?.length || 0}
               timeZone={sync.timeZone}
+              showLocalTime={showLocalTime}
               limit={2}
             />
           </section>
@@ -118,6 +132,7 @@ export default function SyncView() {
             <hr className="mt-2 mb-4" /> */}
             <VoteForm
               syncData={syncData.data}
+              showLocalTime={showLocalTime}
               onSubmit={async (data) => {
                 await submitVote(id, data)
                 // Refresh the sync data
@@ -140,6 +155,7 @@ export default function SyncView() {
             <VoterDetails
               syncData={syncData.data}
               timeZone={sync.timeZone}
+              showLocalTime={showLocalTime}
             />
           </section>
         </CardContent>

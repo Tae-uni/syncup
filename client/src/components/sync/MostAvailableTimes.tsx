@@ -1,21 +1,21 @@
-import { enUS } from "date-fns/locale";
-import { format } from "date-fns";
-
+import { DateTime } from "luxon";
 import { SyncData } from "@/types/sync";
-import { formatTimeInTimeZone } from "@/lib/timezoneConvert";
+import { timezoneUtils } from "@/lib/timezoneConvert";
 
 interface MostAvailableTimesProps {
   timeOptions: SyncData["data"]["sync"]["timeOptions"];
   totalParticipants: number;
   timeZone: string;
   limit?: number;
+  showLocalTime: boolean;
 }
 
 export default function MostAvailableTimes({
   timeOptions,
   totalParticipants,
   timeZone,
-  limit = 2
+  limit = 2,
+  showLocalTime
 }: MostAvailableTimesProps) {
   // If no participants, return
   if (totalParticipants === 0) {
@@ -31,15 +31,17 @@ export default function MostAvailableTimes({
   // Get the most available times
   const mostAvailableTimes = getMostAvailableTimes(timeOptions, totalParticipants, limit);
 
-  // Format the date (remove seconds)
+  // Format the date (Full)
   function formatDate(dateStr: string) {
-    const date = new Date(dateStr);
-    const formattedDate = format(date, "EEEE, MMMM d, yyyy", { locale: enUS });
-    return formattedDate;
+    const targetTimeZone = showLocalTime ? timezoneUtils.getUserTimeZone() : timeZone;
+    return DateTime.fromISO(dateStr)
+      .setZone(targetTimeZone)
+      .toFormat('EEEE, MMMM d, yyyy');
   }
 
   function formatTime(timeStr: string, timeZone: string) {
-    return formatTimeInTimeZone(timeStr, timeZone).slice(0, 5);
+    // return formatTimeInTimeZone(timeStr, timeZone).slice(0, 5);
+    return timezoneUtils.formatTime(timeStr, timeZone, showLocalTime).slice(0, 5);
   }
 
   return (
@@ -87,7 +89,7 @@ function getMostAvailableTimes(
   limit?: number
 ) {
   const voteCountMap = timeOptions.map(opt => ({
-    date: opt.date,
+    date: opt.startTime,
     startTime: opt.startTime,
     endTime: opt.endTime,
     voteCount: opt.votes.length,

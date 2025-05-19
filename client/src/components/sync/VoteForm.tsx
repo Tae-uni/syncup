@@ -1,28 +1,29 @@
 "use client";
 
 import { useState } from "react";
-import { MdCancel, MdCheck, MdEdit, MdAccessTime } from "react-icons/md";
 import { DateTime } from "luxon";
+import { MdCancel, MdCheck, MdEdit } from "react-icons/md";
 
 import { SyncData, VoteSubmitData } from "@/types/sync";
 import { formatTimeInSelectedTimeZone, formatTimeInUserLocalTimeZone, getUserTimeZone } from "@/lib/timezoneConvert";
+
 import { Button } from "@/components/ui/button";
 import { Checkbox } from "@/components/ui/checkbox";
 import { Input } from "@/components/ui/input";
-import { Label } from "../ui/label";
-import { Switch } from "@/components/ui/switch";
+import { Label } from "@/components/ui/label";
 
 interface VoteFormProps {
   syncData: SyncData['data'];
   onSubmit: (data: VoteSubmitData) => void;
   onCancel: (participantName: string) => void;
+  showLocalTime: boolean;
 }
 
-export default function VoteForm({ syncData, onSubmit, onCancel }: VoteFormProps) {
+export default function VoteForm({ syncData, onSubmit, onCancel, showLocalTime }: VoteFormProps) {
   const [name, setName] = useState("");
   const [selectedTimes, setSelectedTimes] = useState<string[]>([]);
   const [isUpdate, setIsUpdate] = useState(false);
-  const [showLocalTime, setShowLocalTime] = useState(false);
+  // const [showLocalTime, setShowLocalTime] = useState(false);
 
   const { sync } = syncData;
 
@@ -105,17 +106,6 @@ export default function VoteForm({ syncData, onSubmit, onCancel }: VoteFormProps
       <div className="space-y-4">
         <div className="flex justify-between items-center mb-2">
           <h3 className="text-sm font-semibold text-gray-700">Select Available Times</h3>
-          <div className="flex items-center gap-2">
-            <MdAccessTime className="text-gray-500" />
-            <div className="flex items-center gap-2">
-              <span className="text-sm text-gray-600">Show local time</span>
-              <Switch
-                checked={showLocalTime}
-                onCheckedChange={setShowLocalTime}
-                className="data-[state=checked]:bg-teal-500"
-              />
-            </div>
-          </div>
         </div>
         <div className="space-y-4">
           {Object.entries(groupedByDate).map(([date, options]) => (
