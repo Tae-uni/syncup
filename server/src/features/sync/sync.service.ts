@@ -35,16 +35,8 @@ export const getSyncById = async (id: string) => {
   return prisma.sync.findUnique({
     where: { id },
     include: {
-      timeOptions: {
-        include: {
-          votes: true,
-        }
-      },
-      participants: {
-        include: {
-          votes: true
-        }
-      }
+      timeOptions: true,
+      participants: true,
     }
   });
 };

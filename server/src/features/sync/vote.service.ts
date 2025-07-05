@@ -109,4 +109,17 @@ export class VoteService {
       return acc;
     }, {} as Record<string, string[]>);
   }
+
+  // Get all votes details for a sync
+  static async getSyncVotesDetails(syncId: string) {
+    return prisma.vote.findMany({
+      where: {
+        timeOption: { syncId }
+      },
+      include: {
+        participant: true,
+        timeOption: true
+      }
+    });
+  }
 }

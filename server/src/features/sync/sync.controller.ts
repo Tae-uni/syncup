@@ -33,12 +33,27 @@ export const getSync = async (
   try {
     const { id: syncId } = req.params;
 
-    const [sync, votes] = await Promise.all([
+    const [syncBasicData, votesDetails] = await Promise.all([
       getSyncById(syncId),
-      VoteService.getVotes(syncId),
-    ]);
+      VoteService.getSyncVotesDetails(syncId),
+    ])
 
-    if (!sync) {
+    // const [sync, votes] = await Promise.all([
+    //   getSyncById(syncId),
+    //   VoteService.getVotes(syncId),
+    // ]);
+
+    const formattedSync = {
+      sync: {
+        ...syncBasicData,
+        timeOptions: syncBasicData?.timeOptions.map(option => ({
+          ...option,
+          votes: votesDetails.filter(vote => vote.timeOptionId === option.id)
+        }))
+      }
+    };
+
+    if (!syncBasicData) {
       return res.status(400).json({
         success: false,
         error: 'Sync ID is required',
@@ -47,10 +62,7 @@ export const getSync = async (
 
     res.status(200).json({
       success: true,
-      data: {
-        sync,
-        votes,
-      },
+      data: formattedSync,
     });
   } catch (error) {
     console.error('Error fetching sync:', error);
