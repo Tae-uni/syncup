@@ -9,13 +9,24 @@ export const submitVote = async (
 ) => {
   try {
     const { id: syncId } = req.params;
-    const { participantName, timeOptionIds } = req.body;
+    const { participantName, timeOptionIds, passcode, isNewParticipant } = req.body;
 
-    const result = await VoteService.submitVote(
-      syncId,
-      participantName,
-      timeOptionIds
-    );
+    let result;
+    if (isNewParticipant) {
+      result = await VoteService.createParticipantAndVote(
+        syncId,
+        participantName,
+        passcode,
+        timeOptionIds
+      );
+    } else {
+      result = await VoteService.updateParticipantVote(
+        syncId,
+        participantName,
+        passcode,
+        timeOptionIds
+      );
+    }
 
     res.status(200).json({
       success: true,
@@ -33,9 +44,13 @@ export const cancelVote = async (
 ) => {
   try {
     const { id: syncId } = req.params;
-    const { participantName } = req.body;
+    const { participantName, passcode } = req.body;
 
-    const result = await VoteService.cancelVote(syncId, participantName);
+    const result = await VoteService.cancelVote(
+      syncId,
+      participantName,
+      passcode
+    );
 
     res.status(200).json({
       success: true,

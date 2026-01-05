@@ -33,15 +33,16 @@ export const getSync = async (
   try {
     const { id: syncId } = req.params;
 
-    const [syncBasicData, votesDetails] = await Promise.all([
-      getSyncById(syncId),
-      VoteService.getSyncVotesDetails(syncId),
-    ])
+    const syncBasicData = await getSyncById(syncId);
 
-    // const [sync, votes] = await Promise.all([
-    //   getSyncById(syncId),
-    //   VoteService.getVotes(syncId),
-    // ]);
+    if (!syncBasicData) {
+      return res.status(404).json({
+        success: false,
+        error: 'Sync not found',
+      })
+    }
+
+    const votesDetails = await VoteService.getSyncVotesDetails(syncId);
 
     const formattedSync = {
       sync: {
@@ -53,12 +54,6 @@ export const getSync = async (
       }
     };
 
-    if (!syncBasicData) {
-      return res.status(400).json({
-        success: false,
-        error: 'Sync ID is required',
-      })
-    }
 
     res.status(200).json({
       success: true,

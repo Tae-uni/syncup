@@ -27,6 +27,8 @@ package-lock.json
 # next.js
 /.next/
 /out/
+/docs/screenshots/
+client/.next/
 
 # production
 /build
@@ -49,6 +51,3 @@ yarn-error.log*
 # typescript
 *.tsbuildinfo
 next-env.d.ts
-
-# Client (Next.js)
-client/.next/

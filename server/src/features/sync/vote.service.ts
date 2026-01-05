@@ -1,8 +1,64 @@
 import prisma from "../../config/prisma";
+import * as bcrypt from "bcrypt";
 
 export class VoteService {
-  static async submitVote(syncId: string, participantName: string, timeOptionIds: string[]) {
-    // Check if sync exists
+  static async createParticipant(
+    syncId: string,
+    participantName: string,
+    passcode: string
+  ) {
+    const existingParticipant = await prisma.participant.findUnique({
+      where: {
+        syncId_name: { syncId, name: participantName },
+      }
+    });
+
+    if (existingParticipant) {
+      throw new Error("Participant already exists");
+    }
+
+    return prisma.participant.create({
+      data: {
+        syncId,
+        name: participantName,
+        hashedPasscode: await bcrypt.hash(passcode, 10),
+      }
+    });
+  }
+
+  static async verifyParticipant(
+    syncId: string,
+    participantName: string,
+    passcode: string
+  ) {
+    const participant = await prisma.participant.findUnique({
+      where: {
+        syncId_name: { syncId, name: participantName },
+      }
+    });
+
+    if (!participant) {
+      throw new Error("Participant not found");
+    }
+
+    const isValidPasscode = await bcrypt.compare(
+      passcode,
+      participant.hashedPasscode
+    );
+
+    if (!isValidPasscode) {
+      throw new Error("Invalid passcode");
+    }
+
+    return participant;
+  }
+
+  static async createParticipantAndVote(
+    syncId: string,
+    participantName: string,
+    passcode: string,
+    timeOptionIds: string[],
+  ) {
     const sync = await prisma.sync.findUnique({
       where: { id: syncId },
     });
@@ -11,7 +67,6 @@ export class VoteService {
       throw new Error("Sync not found");
     }
 
-    // Check if time options exist
     const timeOptions = await prisma.timeOption.findMany({
       where: {
         id: { in: timeOptionIds },
@@ -23,29 +78,12 @@ export class VoteService {
       throw new Error("Invalid time options");
     }
 
-    // Check if participant exists
-    const participant = await prisma.participant.upsert({
-      where: {
-        syncId_name: {
-          syncId,
-          name: participantName,
-        }
-      },
-      create: {
-        syncId,
-        name: participantName,
-      },
-      update: {},
-    });
+    const participant = await this.createParticipant(
+      syncId,
+      participantName,
+      passcode
+    );
 
-    // Delete all existing votes for this participant
-    await prisma.vote.deleteMany({
-      where: {
-        participantId: participant.id,
-      }
-    });
-
-    // Create new votes
     const votes = await prisma.vote.createMany({
       data: timeOptionIds.map(timeOptionId => ({
         participantId: participant.id,
@@ -59,24 +97,51 @@ export class VoteService {
     };
   }
 
-  // Cancel vote
-  static async cancelVote(syncId: string, participantName: string) {
-    const participant = await prisma.participant.findUnique({
+  static async updateParticipantVote(
+    syncId: string,
+    participantName: string,
+    passcode: string,
+    timeOptionIds: string[],
+  ) {
+    const participant = await this.verifyParticipant(
+      syncId,
+      participantName,
+      passcode
+    );
+
+    await prisma.vote.deleteMany({
       where: {
-        syncId_name: {
-          syncId,
-          name: participantName,
-        }
+        participantId: participant.id,
       }
     });
 
-    if (!participant) {
-      throw new Error("Participant not found");
-    }
+    const votes = await prisma.vote.createMany({
+      data: timeOptionIds.map(timeOptionId => ({
+        participantId: participant.id,
+        timeOptionId,
+      }))
+    });
+
+    return {
+      participant,
+      voteCount: votes.count,
+    };
+  }
+
+  static async cancelVote(
+    syncId: string,
+    participantName: string,
+    passcode: string,
+  ) {
+    const participant = await this.verifyParticipant(
+      syncId,
+      participantName,
+      passcode
+    );
 
     const result = await prisma.vote.deleteMany({
       where: {
-        participantId: participant.id
+        participantId: participant.id,
       }
     });
 
@@ -86,8 +151,7 @@ export class VoteService {
     };
   }
 
-  // Get votes for a sync
-  static async getVotes(syncId: string) {
+  static async getSyncVotesDetails(syncId: string) {
     const votes = await prisma.vote.findMany({
       where: {
         timeOption: {
@@ -96,30 +160,14 @@ export class VoteService {
       },
       include: {
         participant: true,
-        timeOption: true,
       }
     });
 
-    return votes.reduce((acc, vote) => {
-      const key = `${vote.timeOption.date.toISOString()}_${vote.timeOption.startTime.toISOString()}_${vote.timeOption.endTime.toISOString()}`;
-      if (!acc[key]) {
-        acc[key] = [];
-      }
-      acc[key].push(vote.participant.name);
-      return acc;
-    }, {} as Record<string, string[]>);
-  }
-
-  // Get all votes details for a sync
-  static async getSyncVotesDetails(syncId: string) {
-    return prisma.vote.findMany({
-      where: {
-        timeOption: { syncId }
-      },
-      include: {
-        participant: true,
-        timeOption: true
-      }
-    });
+    return votes.map(vote => ({
+      timeOptionId: vote.timeOptionId,
+      participantId: vote.participantId,
+      participantName: vote.participant.name,
+      timestamp: vote.createdAt
+    }));
   }
 }

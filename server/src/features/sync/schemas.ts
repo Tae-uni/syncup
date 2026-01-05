@@ -35,6 +35,10 @@ export const voteSchema = {
       .max(50, "Name is too long"),
     timeOptionIds: z.array(z.string().uuid())
       .min(1, "At least one time option is required"),
+    passcode: z.string()
+      .length(4, "Passcode must be exactly 4 characters")
+      .regex(/^\d{4}$/, "Passcode must be 4 digits"),
+    isNewParticipant: z.boolean()
   }),
 
   // Cancel vote
@@ -42,6 +46,9 @@ export const voteSchema = {
     participantName: z.string()
       .min(1, "Name is required")
       .max(50, "Name is too long"),
+    passcode: z.string()
+      .length(4, "Passcode must be exactly 4 characters")
+      .regex(/^\d{4}$/, "Passcode must be 4 digits")
   }),
 };
 
