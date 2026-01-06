@@ -49,6 +49,7 @@ model Participant {
   id        String   @id @default(uuid())
   name      String
   syncId    String
+  hashedPasscode String
   createdAt DateTime @default(now())
 
   sync       Sync         @relation(fields: [syncId], references: [id], onDelete: Cascade)
