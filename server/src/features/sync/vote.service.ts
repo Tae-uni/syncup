@@ -170,4 +170,40 @@ export class VoteService {
       timestamp: vote.createdAt
     }));
   }
+
+  static async submitVote(
+    syncId: string,
+    participantName: string,
+    passcode: string,
+    timeOptionIds: string[],
+  ) {
+    const sync = await prisma.sync.findUnique({
+      where: { id: syncId },
+    });
+    if (!sync) {
+      throw new Error("Sync not found");
+    }
+
+    const timeOptions = await prisma.timeOption.findMany({
+      where: { id: { in: timeOptionIds }, syncId }
+    });
+    if (timeOptions.length !== timeOptionIds.length) {
+      throw new Error("Invalid time options");
+    }
+
+    const existing = await prisma.participant.findUnique({
+      where: { syncId_name: { syncId, name: participantName}}
+    })
+
+    if (!existing) {
+      return this.createParticipantAndVote(syncId, participantName, passcode, timeOptionIds);
+    }
+
+    const isValid = await bcrypt.compare(passcode, existing.hashedPasscode);
+    if (!isValid) {
+      throw new Error("Invalid passcode");
+    }
+
+    return this.updateParticipantVote(syncId, participantName, passcode, timeOptionIds);
+  }
 }

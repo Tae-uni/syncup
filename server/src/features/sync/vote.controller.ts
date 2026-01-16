@@ -9,24 +9,14 @@ export const submitVote = async (
 ) => {
   try {
     const { id: syncId } = req.params;
-    const { participantName, timeOptionIds, passcode, isNewParticipant } = req.body;
+    const { participantName, timeOptionIds, passcode } = req.body;
 
-    let result;
-    if (isNewParticipant) {
-      result = await VoteService.createParticipantAndVote(
-        syncId,
-        participantName,
-        passcode,
-        timeOptionIds
-      );
-    } else {
-      result = await VoteService.updateParticipantVote(
-        syncId,
-        participantName,
-        passcode,
-        timeOptionIds
-      );
-    }
+    const result = await VoteService.submitVote(
+      syncId,
+      participantName,
+      passcode,
+      timeOptionIds
+    );
 
     res.status(200).json({
       success: true,

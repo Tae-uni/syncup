@@ -7,10 +7,10 @@ export const create = async (req: Request, res: Response) => {
   try {
     console.log('Create sync request:', req.body);
 
-    const sync = await createSync(req.body);
+    const data = await createSync(req.body);
     res.status(201).json({
       success: true,
-      sync
+      data
     });
   } catch (error) {
     console.error('Error creating sync:', error);

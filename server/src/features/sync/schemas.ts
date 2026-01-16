@@ -38,7 +38,6 @@ export const voteSchema = {
     passcode: z.string()
       .length(4, "Passcode must be exactly 4 characters")
       .regex(/^\d{4}$/, "Passcode must be 4 digits"),
-    isNewParticipant: z.boolean()
   }),
 
   // Cancel vote
