@@ -5,30 +5,24 @@ export const createSync = async (data: SyncInput) => {
   const { title, description, timeSelector, timeZone } = data;
 
   // Create the sync
-  return prisma.sync.create({
+  const created = await prisma.sync.create({
     data: {
       title,
       description,
       timeZone: timeZone || 'UTC',
       // expiresAt: expiration,
       timeOptions: {
-        create: timeSelector.map((time) => {
-          const date = new Date(time.date);
-          const startTime = new Date(time.startTime);
-          const endTime = new Date(time.endTime);
-
-          return {
-            date,
-            startTime,
-            endTime,
-          };
-        })
-      }
+        create: timeSelector.map((time) => ({
+          date: new Date(time.date),
+          startTime: new Date(time.startTime),
+          endTime: new Date(time.endTime),
+        })),
+      },
     },
-    include: {
-      timeOptions: true,
-    }
+    select: { id: true },
   });
+
+  return created;
 };
 
 export const getSyncById = async (id: string) => {
