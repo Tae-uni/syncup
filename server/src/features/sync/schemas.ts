@@ -51,7 +51,12 @@ export const voteSchema = {
   }),
 };
 
+export const paramsSchema = z.object({
+  id: z.string().uuid("Invalid sync id"),
+});
+
 export type TimeSelector = z.infer<typeof timeSelectorSchema>;
 export type SyncInput = z.infer<typeof syncInputSchema>;
 export type VoteInput = z.infer<typeof voteSchema.submit>;
 export type CancelVoteInput = z.infer<typeof voteSchema.cancel>;
+export type ParamsInput = z.infer<typeof paramsSchema>;

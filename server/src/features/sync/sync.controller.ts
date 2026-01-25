@@ -1,73 +1,39 @@
-import { Request, Response, NextFunction } from "express";
+import { RequestHandler } from "express";
+import { AppError } from "../../middlewares/AppError";
+import { asyncHandler } from "../../utils/asyncHandler";
 import { createSync, getSyncById } from "./sync.service";
 import { VoteService } from "./vote.service";
 
+export const create: RequestHandler = asyncHandler(async (req, res) => {
+  const data = await createSync(req.body);
+  res.status(201).json({
+    success: true,
+    data
+  });
+});
 
-export const create = async (req: Request, res: Response) => {
-  try {
-    console.log('Create sync request:', req.body);
+export const getSync: RequestHandler<{ id: string }> = asyncHandler(async (req, res) => {
+  const syncId = req.params.id;
 
-    const data = await createSync(req.body);
-    res.status(201).json({
-      success: true,
-      data
-    });
-  } catch (error) {
-    console.error('Error creating sync:', error);
-
-    const errorMessage = error instanceof Error ? error.message : 'An unknown error occurred';
-    const statusCode = errorMessage.includes('required') ? 400 : 500;
-
-    res.status(statusCode).json({
-      success: false,
-      error: errorMessage,
-    });
+  const syncBasicData = await getSyncById(syncId);
+  if (!syncBasicData) {
+    throw new AppError('Sync not found', 404, "SYNC_NOT_FOUND");
   }
-};
 
-export const getSync = async (
-  req: Request<{ id: string }>,
-  res: Response,
-  next: NextFunction
-) => {
-  try {
-    const { id: syncId } = req.params;
+  const voteDetails = await VoteService.getSyncVotesDetails(syncId);
 
-    const syncBasicData = await getSyncById(syncId);
-
-    if (!syncBasicData) {
-      return res.status(404).json({
-        success: false,
-        error: 'Sync not found',
-      })
+  const formattedSync = {
+    sync: {
+      ...syncBasicData,
+      timeOptions: syncBasicData?.timeOptions.map(option => ({
+        ...option,
+        votes: voteDetails.filter(vote => vote.timeOptionId === option.id)
+      }))
     }
+  };
 
-    const votesDetails = await VoteService.getSyncVotesDetails(syncId);
-
-    const formattedSync = {
-      sync: {
-        ...syncBasicData,
-        timeOptions: syncBasicData?.timeOptions.map(option => ({
-          ...option,
-          votes: votesDetails.filter(vote => vote.timeOptionId === option.id)
-        }))
-      }
-    };
-
-
-    res.status(200).json({
-      success: true,
-      data: formattedSync,
-    });
-  } catch (error) {
-    console.error('Error fetching sync:', error);
-
-    const errorMessage = error instanceof Error ? error.message : 'An unknown error occurred';
-    const statusCode = errorMessage.includes('required') ? 400 : 500;
-
-    res.status(statusCode).json({
-      success: false,
-      error: errorMessage,
-    });
-  }
-};
+  res.status(200).json({
+    success: true,
+    data: formattedSync,
+  });
+});

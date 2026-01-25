@@ -1,52 +1,42 @@
-import { Request, Response, NextFunction } from "express";
+import { RequestHandler } from "express";
+import { asyncHandler } from "../../utils/asyncHandler";
 import { VoteInput, CancelVoteInput } from "./schemas";
 import { VoteService } from "./vote.service";
 
-export const submitVote = async (
-  req: Request<{ id: string }, {}, VoteInput>,
-  res: Response,
-  next: NextFunction
-) => {
-  try {
-    const { id: syncId } = req.params;
-    const { participantName, timeOptionIds, passcode } = req.body;
+export const submitVote: RequestHandler<{ id: string }, any, VoteInput> =
+  asyncHandler(
+    async (req, res) => {
+      const syncId = req.params.id;
+      const { participantName, timeOptionIds, passcode } = req.body;
 
-    const result = await VoteService.submitVote(
-      syncId,
-      participantName,
-      passcode,
-      timeOptionIds
-    );
+      const result = await VoteService.submitVote(
+        syncId,
+        participantName,
+        passcode,
+        timeOptionIds
+      );
 
-    res.status(200).json({
-      success: true,
-      data: result
-    });
-  } catch (error) {
-    next(error);
-  }
-};
+      res.status(200).json({
+        success: true,
+        data: result
+      });
+    })
 
-export const cancelVote = async (
-  req: Request<{ id: string }, {}, CancelVoteInput>,
-  res: Response,
-  next: NextFunction
-) => {
-  try {
-    const { id: syncId } = req.params;
-    const { participantName, passcode } = req.body;
+export const cancelVote: RequestHandler<{ id: string }, any, CancelVoteInput> =
+  asyncHandler(
+    async (req, res) => {
+      const syncId = req.params.id;
+      const { participantName, passcode } = req.body;
 
-    const result = await VoteService.cancelVote(
-      syncId,
-      participantName,
-      passcode
-    );
+      const result = await VoteService.cancelVote(
+        syncId,
+        participantName,
+        passcode
+      );
 
-    res.status(200).json({
-      success: true,
-      data: result
-    });
-  } catch (error) {
-    next(error);
-  }
-};
+      res.status(200).json({
+        success: true,
+        data: result
+      });
+    }
+  )
