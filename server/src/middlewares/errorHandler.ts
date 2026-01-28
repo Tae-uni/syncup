@@ -8,11 +8,14 @@ export function errorHandler(err: unknown, req: Request, res: Response, next: Ne
   const code = isAppError ? err.code : "INTERNAL_ERROR";
   const message = err instanceof Error ? err.message : "An unexpected error occurred";
 
+  const details = isAppError ? err.details : undefined;
+
   res.status(statusCode).json({
     success: false,
     error: {
         code,
         message,
+        ...(details ? { details } : {})
     },
   });
 }

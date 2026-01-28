@@ -16,6 +16,17 @@ export const timeSelectorSchema = z.object({
   }),
   startTime: z.string().regex(/^\d{4}-\d{2}-\d{2}T\d{2}:\d{2}:\d{2}(?:\.\d{3})?Z$/, "Invalid start time"),
   endTime: z.string().regex(/^\d{4}-\d{2}-\d{2}T\d{2}:\d{2}:\d{2}(?:\.\d{3})?Z$/, "Invalid end time"),
+}).superRefine((val, ctx) => {
+  const start = Date.parse(val.startTime);
+  const end = Date.parse(val.endTime);
+  if (Number.isNaN(start) || Number.isNaN(end)) return;
+
+  if (start >= end) {
+    ctx.addIssue({
+      code: z.ZodIssueCode.custom,
+      message: "End time must be after start time",
+    });
+  }
 });
 
 export const syncInputSchema = z.object({
