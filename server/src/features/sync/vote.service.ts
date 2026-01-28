@@ -1,5 +1,6 @@
-import prisma from "../../config/prisma";
 import * as bcrypt from "bcrypt";
+import prisma from "../../config/prisma";
+import { AppError } from "../../middlewares/AppError";
 
 export class VoteService {
   static async createParticipant(
@@ -14,7 +15,7 @@ export class VoteService {
     });
 
     if (existingParticipant) {
-      throw new Error("Participant already exists");
+      throw new AppError("Participant already exists", 409, "PARTICIPANT_EXISTS");
     }
 
     return prisma.participant.create({
@@ -38,7 +39,7 @@ export class VoteService {
     });
 
     if (!participant) {
-      throw new Error("Participant not found");
+      throw new AppError("Participant not found", 404, "PARTICIPANT_NOT_FOUND");
     }
 
     const isValidPasscode = await bcrypt.compare(
@@ -47,7 +48,7 @@ export class VoteService {
     );
 
     if (!isValidPasscode) {
-      throw new Error("Invalid passcode");
+      throw new AppError("Invalid passcode", 401, "INVALID_PASSCODE");
     }
 
     return participant;
@@ -64,7 +65,7 @@ export class VoteService {
     });
 
     if (!sync) {
-      throw new Error("Sync not found");
+      throw new AppError("Sync not found", 404, "SYNC_NOT_FOUND");
     }
 
     const timeOptions = await prisma.timeOption.findMany({
@@ -75,7 +76,7 @@ export class VoteService {
     });
 
     if (timeOptions.length !== timeOptionIds.length) {
-      throw new Error("Invalid time options");
+      throw new AppError("Invalid time options", 400, "INVALID_TIME_OPTIONS");
     }
 
     const participant = await this.createParticipant(
@@ -181,14 +182,14 @@ export class VoteService {
       where: { id: syncId },
     });
     if (!sync) {
-      throw new Error("Sync not found");
+      throw new AppError("Sync not found", 404, "SYNC_NOT_FOUND");
     }
 
     const timeOptions = await prisma.timeOption.findMany({
       where: { id: { in: timeOptionIds }, syncId }
     });
     if (timeOptions.length !== timeOptionIds.length) {
-      throw new Error("Invalid time options");
+      throw new AppError("Invalid time options", 400, "INVALID_TIME_OPTIONS");
     }
 
     const existing = await prisma.participant.findUnique({
@@ -201,7 +202,7 @@ export class VoteService {
 
     const isValid = await bcrypt.compare(passcode, existing.hashedPasscode);
     if (!isValid) {
-      throw new Error("Invalid passcode");
+      throw new AppError("Invalid passcode", 401, "INVALID_PASSCODE");
     }
 
     return this.updateParticipantVote(syncId, participantName, passcode, timeOptionIds);

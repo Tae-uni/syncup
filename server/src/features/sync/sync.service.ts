@@ -1,8 +1,21 @@
 import prisma from "../../config/prisma";
+import { AppError } from "../../middlewares/AppError";
 import { SyncInput } from "./schemas";
 
 export const createSync = async (data: SyncInput) => {
   const { title, description, timeSelector, timeZone } = data;
+
+  for (const t of timeSelector) {
+    const start = new Date(t.startTime);
+    const end = new Date(t.endTime);
+
+    if (Number.isNaN(start.getTime()) || Number.isNaN(end.getTime())) {
+      throw new AppError("Invalid time format", 400, "INVALID_TIME_FORMAT");
+    }
+    if (start >= end) {
+      throw new AppError("End time must be after start time", 400, "INVALID_TIME_RANGE");
+    }
+  }
 
   // Create the sync
   const created = await prisma.sync.create({
