@@ -140,15 +140,13 @@ export class VoteService {
       passcode
     );
 
-    const result = await prisma.vote.deleteMany({
-      where: {
-        participantId: participant.id,
-      }
+    // Delete participant (votes are cascade deleted)
+    await prisma.participant.delete({
+      where: { id: participant.id }
     });
 
     return {
-      participant,
-      deletedCount: result.count,
+      deletedParticipantId: participant.id,
     };
   }
 
