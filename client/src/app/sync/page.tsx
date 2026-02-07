@@ -1,6 +1,7 @@
 "use client";
 
 import { useEffect, useState } from "react";
+import { toast } from "sonner";
 
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
@@ -36,18 +37,17 @@ export default function Sync() {
   const handleSubmit = async () => {
     console.log('Submitting sync data:', {
       title,
-      // description: document.getElementById('sync-description')?.value,
       timeSelector: timesData,
       timeZone,
     });
 
     if (!title) {
-      alert('Please enter a title');
+      toast.error('Please enter a title');
       return;
     }
 
     setIsSubmitting(true);
-    
+
     try {
       const description = document.getElementById('sync-description') as HTMLTextAreaElement;
 
@@ -63,12 +63,12 @@ export default function Sync() {
       });
 
       if (result.success) {
-        alert('Sync created successfully');
+        toast.success('Sync created successfully');
       } else {
-        alert(result.error);
+        toast.error(result.error);
       }
     } catch {
-      alert('An error occurred while creating the sync');
+      toast.error('An error occurred while creating the sync');
     } finally {
       setIsSubmitting(false);
     }
