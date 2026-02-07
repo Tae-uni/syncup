@@ -1,54 +1,100 @@
 "use client";
 
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { DateTime } from "luxon";
 import { MdCancel, MdCheck, MdEdit } from "react-icons/md";
 
-import { SyncData, VoteSubmitData } from "@/types/sync";
+import { GetSyncPayload, VoteSubmitData } from "@/types/sync";
 import { formatTimeInSelectedTimeZone, formatTimeInUserLocalTimeZone, getUserTimeZone } from "@/lib/timezoneConvert";
 
 import { Button } from "@/components/ui/button";
 import { Checkbox } from "@/components/ui/checkbox";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
+import {
+  Dialog,
+  DialogContent,
+  DialogDescription,
+  DialogFooter,
+  DialogHeader,
+  DialogTitle,
+} from "@/components/ui/dialog";
 
 interface VoteFormProps {
-  syncData: SyncData['data'];
-  onSubmit: (data: VoteSubmitData) => void;
-  onCancel: (participantName: string) => void;
+  syncData: GetSyncPayload;
+  onSubmit: (data: VoteSubmitData) => void | Promise<void>;
+  onCancel: (participantName: string, passcode: string) => void | Promise<void>;
   showLocalTime: boolean;
+  formKey?: number;
+  error?: string | null;
 }
 
-export default function VoteForm({ syncData, onSubmit, onCancel, showLocalTime }: VoteFormProps) {
+export default function VoteForm({ syncData, onSubmit, onCancel, showLocalTime, formKey, error }: VoteFormProps) {
   const [name, setName] = useState("");
+  const [passcode, setPasscode] = useState("");
   const [selectedTimes, setSelectedTimes] = useState<string[]>([]);
-  const [isUpdate, setIsUpdate] = useState(false);
-  // const [showLocalTime, setShowLocalTime] = useState(false);
+  const [localError, setLocalError] = useState<string | null>(null);
+  const [showCancelDialog, setShowCancelDialog] = useState(false);
 
+  const displayError = localError ?? error;
   const { sync } = syncData;
 
-  const handleNameChange = (e: React.ChangeEvent<HTMLInputElement>) => {
-    const newName = e.target.value;
-    setName(newName);
-
-    if (newName && sync.participants?.some(p => p.name === newName)) {
-      const participant = sync.participants.find(p => p.name === newName);
-      if (participant) {
-        const votedOptionIds = sync.timeOptions
-          .filter(opt => opt.votes.some(v => v.participantId === participant.id))
-          .map(opt => opt.id);
-
-        setSelectedTimes(votedOptionIds);
-        setIsUpdate(true);
-      }
-    } else {
-      setIsUpdate(false);
+  useEffect(() => {
+    if (formKey !== undefined && formKey > 0) {
+      setName("");
+      setPasscode("");
+      setSelectedTimes([]);
+      setLocalError(null);
     }
+  }, [formKey]);
+
+  const isUpdate = Boolean(name && sync.participants?.some(p => p.name === name));
+
+  useEffect(() => {
+    if (!name) {
+      setSelectedTimes([]);
+      return;
+    }
+
+    const participant = sync.participants?.find(p => p.name === name);
+    if (participant) {
+      const votedOptionIds = sync.timeOptions
+        .filter(opt => opt.votes.some(v => v.participantId === participant.id))
+        .map(opt => opt.id);
+      setSelectedTimes(votedOptionIds);
+    } else {
+      setSelectedTimes([]);
+    }
+  }, [syncData, name, sync.participants, sync.timeOptions]);
+
+  const handleNameChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+    setName(e.target.value);
+    setLocalError(null);
   };
 
-  const handleSubmit = (e: React.FormEvent) => {
+  const handlePasscodeChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+    const value = e.target.value.replace(/[^0-9]/g, '').slice(0, 4);
+    setPasscode(value);
+    setLocalError(null);
+  };
+
+  const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
-    onSubmit({ participantName: name, timeOptionIds: selectedTimes });
+    if (passcode.length !== 4) {
+      setLocalError("Please enter a 4-digit passcode");
+      return;
+    }
+
+    if (selectedTimes.length === 0) {
+      setLocalError("Please select at least one time option");
+      return;
+    }
+    
+    onSubmit({
+      participantName: name,
+      timeOptionIds: selectedTimes,
+      passcode: passcode,
+    });
   };
 
   const toggleTimeOption = (timeOptionId: string) => {
@@ -84,22 +130,58 @@ export default function VoteForm({ syncData, onSubmit, onCancel, showLocalTime }
         </div>
       )}
 
-      {/* Name Input */}
-      <div className="relative mb-6 max-w-md">
-        <Input
-          id="name"
-          placeholder=" "
-          value={name}
-          onChange={handleNameChange}
-          required
-          className={`peer h-10 w-full rounded-md border px-3 pt-5 pb-2 focus:ring-2 focus:ring-teal-400 ${isUpdate ? 'border-teal-400 bg-teal-50' : ''}`}
-        />
-        <Label
-          htmlFor="name"
-          className="absolute left-3 top-1 text-xs text-gray-500 transition-all peer-placeholder-shown:top-2 peer-placeholder-shown:text-base peer-focus:top-1 peer-focus:text-xs"
-        >
-          Enter your name
-        </Label>
+      {/* Name and Passcode Inputs */}
+      <div className="space-y-2 max-w-md">
+        <div className="relative">
+          <Input
+            id="name"
+            placeholder=" "
+            value={name}
+            onChange={handleNameChange}
+            required
+            className={`peer h-10 w-full rounded-md border px-3 pt-5 pb-2 focus:ring-2 focus:ring-teal-400 ${
+              isUpdate ? 'border-teal-400 bg-teal-50' : ''
+            }`}
+          />
+          <Label 
+            htmlFor="name"
+            className="absolute left-3 top-1 text-xs text-gray-500 transition-all peer-placeholder-shown:top-2 peer-placeholder-shown:text-base peer-focus:top-1 peer-focus:text-xs"
+          >
+            Enter your name
+          </Label>
+        </div>
+
+        <div className="relative">
+          <Input
+            id="passcode"
+            type="password"
+            inputMode="numeric"
+            pattern="[0-9]*"
+            maxLength={4}
+            placeholder=" "
+            value={passcode}
+            onChange={handlePasscodeChange}
+            required
+            className={`peer h-10 w-full rounded-md border px-3 pt-5 pb-2 focus:ring-2 focus:ring-teal-400 ${
+              displayError ? 'border-red-400' : ''
+            }`}
+          />
+          <Label
+            htmlFor="passcode"
+            className="absolute left-3 top-1 text-xs text-gray-500 transition-all peer-placeholder-shown:top-2 peer-placeholder-shown:text-base peer-focus:top-1 peer-focus:text-xs"
+          >
+            {isUpdate ? 'Enter your passcode' : 'Create a 4-digit passcode'}
+          </Label>
+          {displayError ? (
+            <p className="text-xs text-red-500 mt-1">{displayError}</p>
+          ) : (
+            <p className="text-xs text-gray-500 mt-1">
+              {isUpdate
+                ? 'Enter your passcode to update your vote'
+                : 'Remember this code to edit your vote later'}
+            </p>
+          )}
+        </div>
       </div>
 
       {/* Time Options */}
@@ -174,9 +256,15 @@ export default function VoteForm({ syncData, onSubmit, onCancel, showLocalTime }
           {isUpdate && (
             <Button
               type="button"
-              onClick={() => name && onCancel(name)}
+              onClick={() => {
+                if (passcode.length === 4) {
+                  setShowCancelDialog(true);
+                } else {
+                  setLocalError("Please enter your passcode to cancel");
+                }
+              }}
               className="flex-1 sm:flex-none px-2 py-5 rounded-lg font-semibold bg-orange-400 text-white hover:opacity-90 shadow-md hover:shadow-lg"
-              disabled={!name}
+              disabled={!name || passcode.length !== 4}
             >
               <MdCancel className="mr-1" />
               Cancel Vote
@@ -195,6 +283,37 @@ export default function VoteForm({ syncData, onSubmit, onCancel, showLocalTime }
           </Button>
         </div>
       </div>
+
+      {/* Cancel Confirmation Dialog */}
+      <Dialog open={showCancelDialog} onOpenChange={setShowCancelDialog}>
+        <DialogContent className="sm:max-w-md">
+          <DialogHeader>
+            <DialogTitle>Cancel Your Vote?</DialogTitle>
+            <DialogDescription>
+              This will remove all your vote selections and your participation from this sync. You can vote again later with a new passcode.
+            </DialogDescription>
+          </DialogHeader>
+          <DialogFooter className="gap-2 sm:gap-0">
+            <Button
+              type="button"
+              variant="outline"
+              onClick={() => setShowCancelDialog(false)}
+            >
+              Keep My Vote
+            </Button>
+            <Button
+              type="button"
+              className="bg-orange-500 hover:bg-orange-600"
+              onClick={() => {
+                setShowCancelDialog(false);
+                onCancel(name, passcode);
+              }}
+            >
+              Yes, Cancel Vote
+            </Button>
+          </DialogFooter>
+        </DialogContent>
+      </Dialog>
     </form>
   );
 }

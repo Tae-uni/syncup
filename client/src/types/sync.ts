@@ -1,23 +1,68 @@
-export interface TimeOption {
+// Types of View Models
+export interface SyncView {
   id: string;
-  syncId: string;
-  date: string;       
-  startTime: string;  
-  endTime: string;    
-  createdByParticipantId?: string | null;
+  title: string;
+  description?: string;
+  timeZone: string;
+  expiresAt?: string;
   createdAt: string;
 
-  votes: Vote[];
+  timeOptions: TimeOptionView[];
+  participants: ParticipantView[];
 }
 
-export interface Participant {
+export interface TimeOptionView {
+  id: string;
+  date: string;
+  startTime: string;
+  endTime: string;
+
+  votes: VoteView[];
+}
+
+export interface VoteView {
+  participantId: string;
+  timestamp: string;
+}
+
+export interface ParticipantView {
   id: string;
   name: string;
-  syncId: string;
-  createdAt: string;
+}
 
-  votes: Vote[];
-  TimeOption: TimeOption[];
+// API Wrapper Types
+export interface ApiResponse<T> {
+  success: boolean;
+  data?: T;
+  error?: string;
+}
+
+// API payloads
+export interface GetSyncPayload {
+  sync: SyncView;
+  votes: Record<string, string[]>;
+}
+
+// Requests
+export interface VoteSubmitData {
+  participantName: string;
+  timeOptionIds: string[];
+  passcode: string;
+}
+
+export interface CancelVoteData {
+  participantName: string;
+  passcode: string;
+}
+
+// Results
+export interface CancelVoteResult {
+  deletedParticipantId: string;
+}
+
+export interface SubmitVoteResult {
+  participant: ParticipantView;
+  voteCount: number;
 }
 
 export interface Vote {
@@ -27,48 +72,33 @@ export interface Vote {
   createdAt: string;
 }
 
-export interface VoteSubmitData {
-  participantName: string;
-  timeOptionIds: string[];
-  cancel?: boolean;
-}
-
-// export interface VoteSubmitResponse {
-//   success: boolean;
-//   data?: {
-//     participant: Participant;
-//     votes: Vote[];
-//   };
-//   error?: string;
-// }
-
 // Create Sync form data
 export interface CreateSyncFormData {
   title: string;
   description?: string;
   timeSelector: {
-    date: Date; 
-    startTime: string; 
-    endTime: string;   
+    date: Date;
+    startTime: string;
+    endTime: string;
   }[];
   timeZone: string;
 }
 
-// Get Sync data
-export interface SyncData {
-  success: boolean;
-  data: {
-    sync: {
-    id: string;
-    title: string;
-    description?: string;
-    timeZone: string;
-    expiresAt?: string; 
-    createdAt: string;
-
-    timeOptions: TimeOption[];
-    participants: Participant[];
-    }
-    votes: Record<string, string[]>;
-  }
+export type CreateSyncResult = {
+  id: string;
 }
+
+// Get Sync data
+// export interface SyncData {
+//   success: boolean;
+//   data: {
+//     sync: SyncView;
+//     votes: Record<string, string[]>;
+//   }
+// }
+
+// export interface VoteSubmitResponse {
+//   participant: ParticipantView;
+//   voteCount: number;
+//   participantId: string;
+// }
