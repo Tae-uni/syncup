@@ -36,6 +36,7 @@ export const syncInputSchema = z.object({
     message: "Invalid time zone",
   }).default("UTC"),
   timeSelector: z.array(timeSelectorSchema).min(1, "At least one time selector is required"),
+  leaderPasscode: z.string().length(4, "Passcode must be 4 digits").regex(/^\d{4}$/, "Passcode must be 4 digits"),
 });
 
 export const voteSchema = {

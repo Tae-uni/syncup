@@ -1,3 +1,5 @@
+import bcrypt from "bcrypt";
+
 import prisma from "../../config/prisma";
 import { AppError } from "../../middlewares/AppError";
 import { SyncInput } from "./schemas";
@@ -17,6 +19,8 @@ export const createSync = async (data: SyncInput) => {
     }
   }
 
+  const hashedPasscode = await bcrypt.hash(data.leaderPasscode, 10);
+
   // Create the sync
   const created = await prisma.sync.create({
     data: {
@@ -24,6 +28,7 @@ export const createSync = async (data: SyncInput) => {
       description,
       timeZone: timeZone || 'UTC',
       // expiresAt: expiration,
+      hashedPasscode,
       timeOptions: {
         create: timeSelector.map((time) => ({
           date: new Date(time.date),
