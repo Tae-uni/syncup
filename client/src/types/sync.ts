@@ -82,6 +82,7 @@ export interface CreateSyncFormData {
     endTime: string;
   }[];
   timeZone: string;
+  leaderPasscode: string;
 }
 
 export type CreateSyncResult = {

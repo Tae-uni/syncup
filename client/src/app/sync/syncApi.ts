@@ -110,6 +110,7 @@ export async function createSync(formData: CreateSyncFormData): Promise<ApiRespo
     description: formData.description,
     timeSelector,
     timeZone: formData.timeZone,
+    leaderPasscode: formData.leaderPasscode,
   };
 
   console.log('Payload to server:', JSON.stringify(serverData, null, 2));

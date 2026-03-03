@@ -15,6 +15,7 @@ import TimeZoneSelector from "@/components/sync/TimeZoneSelector";
 import { getUserTimeZone } from "@/lib/timezoneConvert";
 
 import { createSync } from "./syncApi";
+import SyncCreatedSuccess from "@/components/sync/SyncCreatedSuccess";
 
 export default function Sync() {
   useEffect(() => {
@@ -27,6 +28,8 @@ export default function Sync() {
   const [selectedDates, setSelectedDates] = useState<Date[]>([]);
   const [timeZone, setTimeZone] = useState(getUserTimeZone());
   const [title, setTitle] = useState('');
+  const [leaderPasscode, setLeaderPasscode] = useState('');
+  const [createdSyncId, setCreatedSyncId] = useState<string | null>(null);
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [timesData, setTimesData] = useState<{
     date: Date;
@@ -60,10 +63,11 @@ export default function Sync() {
           endTime: t.end,
         })),
         timeZone: timeZone,
+        leaderPasscode,
       });
 
-      if (result.success) {
-        toast.success('Sync created successfully');
+      if (result.success && result.data) {
+        setCreatedSyncId(result.data.id);
       } else {
         toast.error(result.error);
       }
@@ -73,6 +77,10 @@ export default function Sync() {
       setIsSubmitting(false);
     }
   };
+
+  if (createdSyncId) {
+    return <SyncCreatedSuccess syncId={createdSyncId} />;
+  }
 
   return (
     <>
@@ -121,6 +129,24 @@ export default function Sync() {
           </Textarea>
         </div>
 
+
+        <div className="flex flex-col w-full max-w-md">
+          <Label htmlFor="leader-passcode" className="text-lg mt-8 block text-left">
+            Leader Passcode
+          </Label>
+          <Input
+            id="leader-passcode"
+            type="password"
+            placeholder="Enter a 4-digit passcode"
+            className="border border-gray-300 rounded-md p-2 mt-2 w-full"
+            value={leaderPasscode}
+            onChange={(e) => setLeaderPasscode(e.target.value)}
+            maxLength={4}
+          />
+          <p className="text-sm text-gray-500 mt-2">
+            You&apos;ll need this passcode to edit or manage the sync later.
+          </p>
+        </div>
 
         {/* Sync Calendar */}
         <div className="flex flex-col w-full max-w-md">
