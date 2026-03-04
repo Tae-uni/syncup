@@ -39,6 +39,20 @@ export const syncInputSchema = z.object({
   leaderPasscode: z.string().length(4, "Passcode must be 4 digits").regex(/^\d{4}$/, "Passcode must be 4 digits"),
 });
 
+export const syncUpdateSchema = z.object({
+  title: z.string().min(1, "Title is required"),
+  description: z.string().optional(),
+  timeZone: z.string().refine(isValidTimeZone, {
+    message: "Invalid time zone",
+  }).default("UTC"),
+  timeSelector: z.array(timeSelectorSchema).min(1, "At least one time selector is required"),
+  leaderPasscode: z.string().length(4, "Passcode must be 4 digits").regex(/^\d{4}$/, "Passcode must be 4 digits"),
+})
+
+export const verifyLeaderSchema = z.object({
+  leaderPasscode: z.string().length(4, "Passcode must be 4 digits").regex(/^\d{4}$/, "Passcode must be 4 digits"),
+});
+
 export const voteSchema = {
   // Submit vote
   submit: z.object({
@@ -69,6 +83,8 @@ export const paramsSchema = z.object({
 
 export type TimeSelector = z.infer<typeof timeSelectorSchema>;
 export type SyncInput = z.infer<typeof syncInputSchema>;
+export type SyncUpdateInput = z.infer<typeof syncUpdateSchema>;
+export type VerifyLeaderInput = z.infer<typeof verifyLeaderSchema>;
 export type VoteInput = z.infer<typeof voteSchema.submit>;
 export type CancelVoteInput = z.infer<typeof voteSchema.cancel>;
 export type ParamsInput = z.infer<typeof paramsSchema>;

@@ -43,6 +43,22 @@ export const createSync = async (data: SyncInput) => {
   return created;
 };
 
+export const verifyLeaderPasscode = async (syncId: string, passcode: string): Promise<void> => {
+  const sync = await prisma.sync.findUnique({
+    where: { id: syncId },
+    select: { hashedPasscode: true },
+  });
+
+  if (!sync) {
+    throw new AppError("Sync not found", 404, "SYNC_NOT_FOUND");
+  }
+
+  const isValid = await bcrypt.compare(passcode, sync.hashedPasscode);
+  if (!isValid) {
+    throw new AppError("Invalid passcode", 401, "INVALID_PASSCODE");
+  }
+};
+
 export const getSyncById = async (id: string) => {
   return prisma.sync.findUnique({
     where: { id },

@@ -1,7 +1,7 @@
 import { RequestHandler } from "express";
 import { AppError } from "../../middlewares/AppError";
 import { asyncHandler } from "../../utils/asyncHandler";
-import { createSync, getSyncById } from "./sync.service";
+import { createSync, getSyncById, verifyLeaderPasscode } from "./sync.service";
 import { VoteService } from "./vote.service";
 
 export const create: RequestHandler = asyncHandler(async (req, res) => {
@@ -9,6 +9,16 @@ export const create: RequestHandler = asyncHandler(async (req, res) => {
   res.status(201).json({
     success: true,
     data
+  });
+});
+
+export const verifyLeader: RequestHandler<{ id: string }> = asyncHandler(async (req, res) => {
+  await verifyLeaderPasscode(req.params.id, req.body.leaderPasscode);
+  res.status(200).json({
+    success: true,
+    data: {
+      message: "Passcode verified successfully"
+    }
   });
 });
 
