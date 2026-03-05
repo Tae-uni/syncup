@@ -129,6 +129,14 @@ export async function getSync(id: string): Promise<ApiResponse<GetSyncPayload>> 
   });
 }
 
+export async function verifyLeader(syncId: string, passcode: string): Promise<ApiResponse<void>> {
+  return request<void>(`${API_BASE_URL}/sync/${syncId}/verify-leader`, {
+    method: 'POST',
+    headers: { 'Content-Type': 'application/json' },
+    body: JSON.stringify({ leaderPasscode: passcode }),
+  });
+}
+
 export async function submitVote(syncId: string, data: VoteSubmitData): Promise<ApiResponse<SubmitVoteResult>> {
   return request<SubmitVoteResult>(`${API_BASE_URL}/sync/${syncId}/votes`, {
     method: 'POST',
