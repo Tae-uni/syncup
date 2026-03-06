@@ -5,3 +5,21 @@ Content-Type: application/json
 {
   "leaderPasscode": "1111"
 }
+
+### Update Sync
+PUT http://localhost:5002/api/sync/ac2deeea-1c6e-4722-9bb5-2fdbf74d45cb
+Content-Type: application/json
+
+{
+  "title": "Updated Sync Title",
+  "description": "Updated description for the sync.",
+  "timeZone": "America/New_York",
+  "timeSelector": [
+    {
+      "date": "2026-05-05",
+      "startTime": "2024-07-01T09:00:00Z",
+      "endTime": "2024-07-01T17:00:00Z"
+    }
+  ],
+  "leaderPasscode": "1111"
+}

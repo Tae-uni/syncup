@@ -2,13 +2,13 @@ import { Router } from "express";
 import * as syncController from "./sync.controller";
 import * as voteController from "./vote.controller";
 import { validateRequest } from "../../middlewares/validators";
-import { paramsSchema, syncInputSchema, verifyLeaderSchema,voteSchema } from "./schemas";
+import { paramsSchema, syncInputSchema, syncUpdateSchema,verifyLeaderSchema, voteSchema } from "./schemas";
 const router = Router();
 
 // Sync routes
 router.post('/', validateRequest(syncInputSchema), syncController.create);
 router.get('/:id', validateRequest({ params: paramsSchema }), syncController.getSync);
-// router.put('/:id', updateSync);
+router.put('/:id', validateRequest({ params: paramsSchema, body: syncUpdateSchema }), syncController.update);
 // router.delete('/:id', deleteSync);
 
 // Vote routes

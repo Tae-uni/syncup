@@ -44,7 +44,7 @@ export const syncUpdateSchema = z.object({
   description: z.string().optional(),
   timeZone: z.string().refine(isValidTimeZone, {
     message: "Invalid time zone",
-  }).default("UTC"),
+  }),
   timeSelector: z.array(timeSelectorSchema).min(1, "At least one time selector is required"),
   leaderPasscode: z.string().length(4, "Passcode must be 4 digits").regex(/^\d{4}$/, "Passcode must be 4 digits"),
 })
