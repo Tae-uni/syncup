@@ -1,7 +1,7 @@
 import { RequestHandler } from "express";
 import { AppError } from "../../middlewares/AppError";
 import { asyncHandler } from "../../utils/asyncHandler";
-import { createSync, getSyncById, verifyLeaderPasscode } from "./sync.service";
+import { createSync, getSyncById, verifyLeaderPasscode, updateSync } from "./sync.service";
 import { VoteService } from "./vote.service";
 
 export const create: RequestHandler = asyncHandler(async (req, res) => {
@@ -46,4 +46,12 @@ export const getSync: RequestHandler<{ id: string }> = asyncHandler(async (req, 
     success: true,
     data: formattedSync,
   });
+});
+
+export const update: RequestHandler<{ id: string }> = asyncHandler(async (req, res) => {
+  const data = await updateSync(req.params.id, req.body);
+  res.status(200).json({
+    success: true,
+    data,
+  })
 });

@@ -6,7 +6,7 @@ import {
   ApiResponse,
   SubmitVoteResult,
   CancelVoteResult,
-  CreateSyncResult
+  CreateSyncResult,
 } from "@/types/sync";
 
 const API_BASE_URL = "http://localhost:5002/api";
@@ -43,7 +43,14 @@ function humanizeMessage(message: string): string {
 }
 
 type ServerFail =
-  | { success: false; error?: { code?: string; message?: string; details?: Array<{ path?: string; message: string }> } }
+  | {
+      success: false;
+      error?: {
+        code?: string;
+        message?: string;
+        details?: Array<{ path?: string; message: string }>;
+      };
+    }
   | { success: false; errors?: Array<{ path?: string; message: string }> }
   | { success: false; error?: string; code?: string };
 
@@ -51,7 +58,7 @@ async function parseServerError(res: Response): Promise<string> {
   try {
     const body = (await res.json()) as ServerFail;
 
-    if ('error' in body && typeof body.error === "object") {
+    if ("error" in body && typeof body.error === "object") {
       const { message, details } = body.error;
 
       // details가 있으면 사용자 친화적 메시지로 변환
@@ -67,7 +74,7 @@ async function parseServerError(res: Response): Promise<string> {
     }
 
     if ("errors" in body && body.errors?.length) {
-      return body.errors.map(e => humanizeErrorMessage(e.path, e.message)).join("\n");
+      return body.errors.map((e) => humanizeErrorMessage(e.path, e.message)).join("\n");
     }
 
     if ("error" in body && typeof body.error === "string") {
@@ -90,9 +97,11 @@ async function request<T>(input: RequestInfo, init?: RequestInit): Promise<ApiRe
   return { success: true, data: json.data as T };
 }
 
-export async function createSync(formData: CreateSyncFormData): Promise<ApiResponse<CreateSyncResult>> {
-  const timeSelector = formData.timeSelector.map(item => {
-    const dateStr = item.date.toISOString().split('T')[0];
+export async function createSync(
+  formData: CreateSyncFormData,
+): Promise<ApiResponse<CreateSyncResult>> {
+  const timeSelector = formData.timeSelector.map((item) => {
+    const dateStr = item.date.toISOString().split("T")[0];
 
     const startInUTC = convertToUTC(dateStr, item.startTime, formData.timeZone);
     const endInUTC = convertToUTC(dateStr, item.endTime, formData.timeZone);
@@ -113,42 +122,73 @@ export async function createSync(formData: CreateSyncFormData): Promise<ApiRespo
     leaderPasscode: formData.leaderPasscode,
   };
 
-  console.log('Payload to server:', JSON.stringify(serverData, null, 2));
+  console.log("Payload to server:", JSON.stringify(serverData, null, 2));
 
   return request<CreateSyncResult>(`${API_BASE_URL}/sync`, {
-    method: 'POST',
-    headers: { 'Content-Type': 'application/json' },
+    method: "POST",
+    headers: { "Content-Type": "application/json" },
     body: JSON.stringify(serverData),
   });
 }
 
 export async function getSync(id: string): Promise<ApiResponse<GetSyncPayload>> {
   return request<GetSyncPayload>(`${API_BASE_URL}/sync/${id}`, {
-    method: 'GET',
-    headers: { 'Content-Type': 'application/json' },
+    method: "GET",
+    headers: { "Content-Type": "application/json" },
+  });
+}
+
+export async function updateSync(
+  syncId: string,
+  formData: CreateSyncFormData,
+): Promise<ApiResponse<CreateSyncResult>> {
+  const timeSelector = formData.timeSelector.map((item) => {
+    const dateStr = item.date.toISOString().split("T")[0];
+    const startInUTC = convertToUTC(dateStr, item.startTime, formData.timeZone);
+    const endInUTC = convertToUTC(dateStr, item.endTime, formData.timeZone);
+    return { date: dateStr, startTime: startInUTC, endTime: endInUTC };
+  });
+
+  return request<CreateSyncResult>(`${API_BASE_URL}/sync/${syncId}`, {
+    method: "PUT",
+    headers: { "Content-Type": "application/json" },
+    body: JSON.stringify({
+      title: formData.title,
+      description: formData.description,
+      timeZone: formData.timeZone,
+      timeSelector,
+      leaderPasscode: formData.leaderPasscode,
+    }),
   });
 }
 
 export async function verifyLeader(syncId: string, passcode: string): Promise<ApiResponse<void>> {
   return request<void>(`${API_BASE_URL}/sync/${syncId}/verify-leader`, {
-    method: 'POST',
-    headers: { 'Content-Type': 'application/json' },
+    method: "POST",
+    headers: { "Content-Type": "application/json" },
     body: JSON.stringify({ leaderPasscode: passcode }),
   });
 }
 
-export async function submitVote(syncId: string, data: VoteSubmitData): Promise<ApiResponse<SubmitVoteResult>> {
+export async function submitVote(
+  syncId: string,
+  data: VoteSubmitData,
+): Promise<ApiResponse<SubmitVoteResult>> {
   return request<SubmitVoteResult>(`${API_BASE_URL}/sync/${syncId}/votes`, {
-    method: 'POST',
-    headers: { 'Content-Type': 'application/json' },
+    method: "POST",
+    headers: { "Content-Type": "application/json" },
     body: JSON.stringify(data),
   });
 }
 
-export async function cancelVote(syncId: string, participantName: string, passcode: string): Promise<ApiResponse<CancelVoteResult>> {
+export async function cancelVote(
+  syncId: string,
+  participantName: string,
+  passcode: string,
+): Promise<ApiResponse<CancelVoteResult>> {
   return request<CancelVoteResult>(`${API_BASE_URL}/sync/${syncId}/votes`, {
-    method: 'DELETE',
-    headers: { 'Content-Type': 'application/json' },
+    method: "DELETE",
+    headers: { "Content-Type": "application/json" },
     body: JSON.stringify({ participantName, passcode }),
   });
 }

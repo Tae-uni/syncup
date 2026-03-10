@@ -7,6 +7,7 @@ import { Label } from "@/components/ui/label";
 import { Input } from "@/components/ui/input";
 import { Button } from "@/components/ui/button";
 import { verifyLeader } from "@/app/sync/syncApi";
+import SyncEditForm from "@/components/sync/SyncEditForm";
 
 export default function EditSyncPage() {
     const { id } = useParams<{ id: string }>();
@@ -32,13 +33,8 @@ export default function EditSyncPage() {
         }
     };
 
-    // Need to change: If verified, show the edit form (not implemented yet)
     if (verified) {
-        return (
-            <main className="flex flex-col items-center justify-center min-h-screen p-10">
-                <h1 className="text-2xl font-bold mb-4">Edit Sync</h1>
-            </main>
-        );
+        return <SyncEditForm syncId={id} passcode={passcode} />;
     }
 
     return (

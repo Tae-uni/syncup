@@ -2,7 +2,7 @@ import bcrypt from "bcrypt";
 
 import prisma from "../../config/prisma";
 import { AppError } from "../../middlewares/AppError";
-import { SyncInput } from "./schemas";
+import { SyncInput, SyncUpdateInput } from "./schemas";
 
 export const createSync = async (data: SyncInput) => {
   const { title, description, timeSelector, timeZone } = data;
@@ -67,4 +67,28 @@ export const getSyncById = async (id: string) => {
       participants: true,
     }
   });
+};
+
+export const updateSync = async (syncId: string, data: SyncUpdateInput) => {
+  await verifyLeaderPasscode(syncId, data.leaderPasscode);
+
+  const updated = await prisma.sync.update({
+    where: { id: syncId },
+    data: {
+      title: data.title,
+      description: data.description,
+      timeZone: data.timeZone,
+      timeOptions: {
+        deleteMany: {},
+        create: data.timeSelector.map((time) => ({
+          date: new Date(time.date),
+          startTime: new Date(time.startTime),
+          endTime: new Date(time.endTime),
+        })),
+      },
+    },
+    select: { id: true },
+  });
+
+  return updated;
 };
