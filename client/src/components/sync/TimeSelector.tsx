@@ -1,7 +1,6 @@
 "use client";
 
 import { useState, useEffect } from "react";
-import { Select, SelectTrigger, SelectContent, SelectValue, SelectItem } from "@/components/ui/select";
 import { Button } from "@/components/ui/button";
 
 // TODO: Add a time zone selector, automatically set the time zone based on the user's location.
@@ -9,38 +8,43 @@ import { Button } from "@/components/ui/button";
 interface TimeSelectorProps {
   selectedDates: Date[];
   onChange: (timesData: Array<{ date: Date; start: string; end: string }>) => void;
+  initialSlots?: Record<string, Array<{ start: string; end: string }>>;
 }
 
 const timeOptions = Array.from({ length: 48 }, (_, i) => {
-  const hour = Math.floor(i / 2).toString().padStart(2, '0');
-  const minute = i % 2 === 0 ? '00' : '30';
+  const hour = Math.floor(i / 2)
+    .toString()
+    .padStart(2, "0");
+  const minute = i % 2 === 0 ? "00" : "30";
   return `${hour}:${minute}`;
 });
 
-export default function TimeSelector({ selectedDates, onChange }: TimeSelectorProps) {
+export default function TimeSelector({ selectedDates, onChange, initialSlots }: TimeSelectorProps) {
   // 각 날짜별 시간 슬롯을 관리하는 상태
-  const [dateTimeSlots, setDateTimeSlots] = useState<Record<string, Array<{ start: string; end: string }>>>({});
+  const [dateTimeSlots, setDateTimeSlots] = useState<
+    Record<string, Array<{ start: string; end: string }>>
+  >(initialSlots || {});
 
   const formatDateToLocalString = (date: Date) => {
     const year = date.getFullYear();
-    const month = String(date.getMonth() + 1).padStart(2, '0');
-    const day = String(date.getDate()).padStart(2, '0');
+    const month = String(date.getMonth() + 1).padStart(2, "0");
+    const day = String(date.getDate()).padStart(2, "0");
     return `${year}-${month}-${day}`;
-  }
+  };
 
   // Add time slot to a specific date
   const addTimeSlot = (date: Date) => {
     const dateKey = formatDateToLocalString(date);
-    setDateTimeSlots(prev => ({
+    setDateTimeSlots((prev) => ({
       ...prev,
-      [dateKey]: [...(prev[dateKey] || []), { start: "09:00", end: "10:00" }]
+      [dateKey]: [...(prev[dateKey] || []), { start: "09:00", end: "10:00" }],
     }));
   };
 
   // Update a specific time slot
-  const updateTimeSlot = (date: Date, index: number, field: 'start' | 'end', value: string) => {
+  const updateTimeSlot = (date: Date, index: number, field: "start" | "end", value: string) => {
     const dateKey = formatDateToLocalString(date);
-    setDateTimeSlots(prev => {
+    setDateTimeSlots((prev) => {
       const slots = [...(prev[dateKey] || [])];
       slots[index] = { ...slots[index], [field]: value };
       return { ...prev, [dateKey]: slots };
@@ -50,12 +54,18 @@ export default function TimeSelector({ selectedDates, onChange }: TimeSelectorPr
   // Remove a time slot
   const removeTimeSlot = (date: Date, index: number) => {
     const dateKey = formatDateToLocalString(date);
-    setDateTimeSlots(prev => {
+    setDateTimeSlots((prev) => {
       const slots = [...(prev[dateKey] || [])];
       slots.splice(index, 1);
       return { ...prev, [dateKey]: slots };
     });
   };
+
+  useEffect(() => {
+    if (initialSlots && Object.keys(initialSlots).length > 0) {
+      setDateTimeSlots(initialSlots);
+    }
+  }, [initialSlots]);
 
   // Update parent component when time slots change
   useEffect(() => {
@@ -84,14 +94,13 @@ export default function TimeSelector({ selectedDates, onChange }: TimeSelectorPr
             <div key={dateKey} className="border rounded-lg p-4">
               <div className="flex justify-between items-center mb-3">
                 <h3 className="font-medium">
-                  {date.toLocaleDateString('en-US', { weekday: 'short', month: 'short', day: 'numeric' })}
+                  {date.toLocaleDateString("en-US", {
+                    weekday: "short",
+                    month: "short",
+                    day: "numeric",
+                  })}
                 </h3>
-                <Button
-                  type="button"
-                  variant="outline"
-                  size="sm"
-                  onClick={() => addTimeSlot(date)}
-                >
+                <Button type="button" variant="outline" size="sm" onClick={() => addTimeSlot(date)}>
                   Add Time Slot
                 </Button>
               </div>
@@ -104,7 +113,7 @@ export default function TimeSelector({ selectedDates, onChange }: TimeSelectorPr
                     <div key={index} className="flex items-center gap-2">
                       <select
                         value={slot.start}
-                        onChange={(e) => updateTimeSlot(date, index, 'start', e.target.value)}
+                        onChange={(e) => updateTimeSlot(date, index, "start", e.target.value)}
                         className="border rounded p-2"
                       >
                         {timeOptions.map((time) => (
@@ -116,7 +125,7 @@ export default function TimeSelector({ selectedDates, onChange }: TimeSelectorPr
                       <span>to</span>
                       <select
                         value={slot.end}
-                        onChange={(e) => updateTimeSlot(date, index, 'end', e.target.value)}
+                        onChange={(e) => updateTimeSlot(date, index, "end", e.target.value)}
                         className="border rounded p-2"
                       >
                         {timeOptions.map((time) => (
