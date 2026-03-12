@@ -49,6 +49,31 @@ export default function Sync() {
       return;
     }
 
+    if (selectedDates.length === 0) {
+      toast.error("Please select at least one date");
+      return;
+    }
+
+    if (timesData.length === 0) {
+      toast.error('Please add at least one time slot');
+      return;
+    }
+
+    const hasDateWithoutSlot = selectedDates.some(
+      date => !timesData.some(t => t.date.toDateString() === date.toDateString())
+    );
+
+    if (hasDateWithoutSlot) {
+      toast.error("Please add at least one time slot for each selected date");
+      return;
+    }
+
+    const hasInvalidTime = timesData.some(t => t.start >= t.end);
+    if (hasInvalidTime) {
+      toast.error('End time must be after start time');
+      return;
+    }
+
     setIsSubmitting(true);
 
     try {
