@@ -23,3 +23,11 @@ Content-Type: application/json
   ],
   "leaderPasscode": "1111"
 }
+
+### Delete Sync
+DELETE http://localhost:5002/api/sync/5cf73db2-a9e6-4a5f-b6c4-b9d2b9e40c82
+Content-Type: application/json
+
+{
+  "leaderPasscode": "1111"
+}

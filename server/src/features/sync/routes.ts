@@ -7,9 +7,9 @@ const router = Router();
 
 // Sync routes
 router.post('/', validateRequest(syncInputSchema), syncController.create);
-router.get('/:id', validateRequest({ params: paramsSchema }), syncController.getSync);
+router.get('/:id', validateRequest({ params: paramsSchema }), syncController.get);
 router.put('/:id', validateRequest({ params: paramsSchema, body: syncUpdateSchema }), syncController.update);
-// router.delete('/:id', deleteSync);
+router.delete('/:id', validateRequest({ params: paramsSchema, body: verifyLeaderSchema }), syncController.remove);
 
 // Vote routes
 router.post('/:id/votes', validateRequest({ params: paramsSchema, body: voteSchema.submit }), voteController.submitVote);
