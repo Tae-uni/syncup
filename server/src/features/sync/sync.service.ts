@@ -92,3 +92,8 @@ export const updateSync = async (syncId: string, data: SyncUpdateInput) => {
 
   return updated;
 };
+
+export const deleteSync = async (syncId: string, passcode: string): Promise<void> => {
+  await verifyLeaderPasscode(syncId, passcode);
+  await prisma.sync.delete({ where: { id: syncId } });
+}

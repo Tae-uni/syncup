@@ -8,13 +8,14 @@ import { Input } from "@/components/ui/input";
 import { Button } from "@/components/ui/button";
 import { Label } from "@/components/ui/label";
 import { Textarea } from "@/components/ui/textarea";
+import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogFooter } from "@/components/ui/dialog";
 
 import CalendarPicker from "@/components/sync/CalendarPicker";
 import TimeZoneSelector from "@/components/sync/TimeZoneSelector";
 import TimeSelector from "@/components/sync/TimeSelector";
 
 import { formatInTimeZone } from "@/lib/timezoneConvert";
-import { getSync, updateSync } from "@/app/sync/syncApi";
+import { getSync, updateSync, deleteSync } from "@/app/sync/syncApi";
 
 interface Props {
   syncId: string;
@@ -32,6 +33,8 @@ export default function SyncEditForm({ syncId, passcode }: Props) {
   const [initialSlots, setInitialSlots] = useState<Record<string, Array<{ start: string; end: string }>>>({});
   const [timesData, setTimesData] = useState<{ date: Date; start: string; end: string }[]>([]);
   const [isSubmitting, setIsSubmitting] = useState(false);
+  const [isDeleteDialogOpen, setIsDeleteDialogOpen] = useState(false);
+  const [isDeleting, setIsDeleting] = useState(false);
 
   useEffect(() => {
     const fetchSync = async () => {
@@ -134,6 +137,24 @@ export default function SyncEditForm({ syncId, passcode }: Props) {
     }
   };
 
+  const handleDelete = async () => {
+    setIsDeleting(true);
+    try {
+      const result = await deleteSync(syncId, passcode);
+      if (result.success) {
+        toast.success("Sync deleted successfully");
+        router.push("/");
+      } else {
+        toast.error(result.error ?? "Failed to delete sync");
+      }
+    } catch {
+      toast.error("An error occurred. Please try again.");
+    } finally {
+      setIsDeleting(false);
+      setIsDeleteDialogOpen(false);
+    }
+  };
+
   if (isLoading) {
     return (
       <main className="flex flex-col items-center justify-center min-h-screen">
@@ -197,25 +218,52 @@ export default function SyncEditForm({ syncId, passcode }: Props) {
             />
           </div>
         </div>
-        <div className="flex justify-center mt-8">
+        <div className="flex justify-between mt-8 w-full max-w-md">
           <Button
             type="button"
-            variant="outline"
-            className="mr-4"
-            onClick={() => router.push(`/sync/${syncId}`)}
+            variant="destructive"
+            onClick={() => setIsDeleteDialogOpen(true)}
           >
-            Cancel
+            Delete Sync
           </Button>
-          <Button
-            type="submit"
-            onClick={handleSubmit}
-            disabled={isSubmitting}
-            className="bg-blue-500 text-white hover:bg-blue-600"
-          >
-            {isSubmitting ? "Updating..." : "Update Sync"}
-          </Button>
+          <div className="flex gap-2">
+            <Button
+              type="button"
+              variant="outline"
+              onClick={() => router.push(`/sync/${syncId}`)}
+            >
+              Cancel
+            </Button>
+            <Button
+              type="submit"
+              onClick={handleSubmit}
+              disabled={isSubmitting}
+              className="bg-blue-500 text-white hover:bg-blue-600"
+            >
+              {isSubmitting ? "Updating..." : "Update Sync"}
+            </Button>
+          </div>
         </div>
       </main>
+
+      <Dialog open={isDeleteDialogOpen} onOpenChange={setIsDeleteDialogOpen}>
+        <DialogContent>
+          <DialogHeader>
+            <DialogTitle>Delete Sync</DialogTitle>
+          </DialogHeader>
+          <p className="text-sm text-gray-500">
+            Are you sure want to delete this sync? This action cannot be undone.
+          </p>
+          <DialogFooter>
+            <Button variant="outline" onClick={() => setIsDeleteDialogOpen(false)}>
+              Cancel
+            </Button>
+            <Button variant="destructive" onClick={handleDelete} disabled={isDeleting}>
+              {isDeleting ? "Deleting..." : "Delete"}
+            </Button>
+          </DialogFooter>
+        </DialogContent>
+      </Dialog>
     </>
   );
 }
