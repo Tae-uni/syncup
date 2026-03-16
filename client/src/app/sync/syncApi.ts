@@ -162,6 +162,21 @@ export async function updateSync(
   });
 }
 
+export async function deleteSync(syncId: string, leaderPasscode: string): Promise<ApiResponse<void>> {
+  const res = await fetch(`${API_BASE_URL}/sync/${syncId}`, {
+    method: "DELETE",
+    headers: { "Content-Type": "application/json" },
+    body: JSON.stringify({ leaderPasscode }),
+  });
+
+  if (!res.ok) {
+    const msg = await parseServerError(res);
+    return { success: false, error: msg };
+  }
+
+  return { success: true };
+}
+
 export async function verifyLeader(syncId: string, passcode: string): Promise<ApiResponse<void>> {
   return request<void>(`${API_BASE_URL}/sync/${syncId}/verify-leader`, {
     method: "POST",
