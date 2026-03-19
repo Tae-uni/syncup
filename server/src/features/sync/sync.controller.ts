@@ -26,16 +26,11 @@ export const get: RequestHandler<{ id: string }> = asyncHandler(async (req, res)
   const syncId = req.params.id;
 
   const syncBasicData = await getSyncById(syncId);
-  if (!syncBasicData) {
-    throw new AppError('Sync not found', 404, "SYNC_NOT_FOUND");
-  }
-
   const voteDetails = await VoteService.getSyncVotesDetails(syncId);
-
   const formattedSync = {
     sync: {
       ...syncBasicData,
-      timeOptions: syncBasicData?.timeOptions.map(option => ({
+      timeOptions: syncBasicData.timeOptions.map(option => ({
         ...option,
         votes: voteDetails.filter(vote => vote.timeOptionId === option.id)
       }))

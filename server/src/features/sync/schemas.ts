@@ -35,6 +35,11 @@ export const syncInputSchema = z.object({
   timeZone: z.string().refine(isValidTimeZone, {
     message: "Invalid time zone",
   }).default("UTC"),
+  expiresAt: z.string().datetime().optional().default(() => {
+    const d = new Date();
+    d.setDate(d.getDate() + 3);
+    return d.toISOString();
+  }),
   timeSelector: z.array(timeSelectorSchema).min(1, "At least one time selector is required"),
   leaderPasscode: z.string().length(4, "Passcode must be 4 digits").regex(/^\d{4}$/, "Passcode must be 4 digits"),
 });

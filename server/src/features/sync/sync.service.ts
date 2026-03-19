@@ -5,7 +5,7 @@ import { AppError } from "../../middlewares/AppError";
 import { SyncInput, SyncUpdateInput } from "./schemas";
 
 export const createSync = async (data: SyncInput) => {
-  const { title, description, timeSelector, timeZone } = data;
+  const { title, description, timeSelector, timeZone, expiresAt } = data;
 
   for (const t of timeSelector) {
     const start = new Date(t.startTime);
@@ -27,7 +27,7 @@ export const createSync = async (data: SyncInput) => {
       title,
       description,
       timeZone: timeZone || 'UTC',
-      // expiresAt: expiration,
+      expiresAt: new Date(expiresAt),
       hashedPasscode,
       timeOptions: {
         create: timeSelector.map((time) => ({
@@ -60,13 +60,23 @@ export const verifyLeaderPasscode = async (syncId: string, passcode: string): Pr
 };
 
 export const getSyncById = async (id: string) => {
-  return prisma.sync.findUnique({
+  const sync = await prisma.sync.findUnique({
     where: { id },
     include: {
       timeOptions: true,
       participants: true,
     }
   });
+
+  if (!sync) {
+    throw new AppError("Sync not found", 404, "SYNC_NOT_FOUND");
+  }
+
+  if (sync.expiresAt && sync.expiresAt < new Date()) {
+    throw new AppError("This Sync has expired", 410, "SYNC_EXPIRED");
+  }
+
+  return sync;
 };
 
 export const updateSync = async (syncId: string, data: SyncUpdateInput) => {
