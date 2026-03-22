@@ -1,6 +1,8 @@
 # Node
 node_modules/
 package-lock.json
+/server/requests/test.http
+/server/src/features/test.ts
 
 # OS
 .DS_Store

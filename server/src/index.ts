@@ -4,6 +4,7 @@ import cors from 'cors';
 import syncRoutes from './features/sync/routes';
 import testRoutes from './features/test';
 import { errorHandler } from './middlewares/errorHandler';
+import { startCleanupJob } from './jobs/cleanupExpiredSyncs';
 
 const app = express();
 const PORT = process.env.PORT || 5002;
@@ -20,4 +21,5 @@ app.get('/', (_req, res) => {
 
 app.listen(PORT, () => {
   console.log(`Server is running on http://localhost:${PORT}`);
+  startCleanupJob();
 });
