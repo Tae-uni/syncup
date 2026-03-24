@@ -120,6 +120,7 @@ export async function createSync(
     timeSelector,
     timeZone: formData.timeZone,
     leaderPasscode: formData.leaderPasscode,
+    ...(formData.expiresAt && { expiresAt: formData.expiresAt }),
   };
 
   console.log("Payload to server:", JSON.stringify(serverData, null, 2));

@@ -83,6 +83,7 @@ export interface CreateSyncFormData {
   }[];
   timeZone: string;
   leaderPasscode: string;
+  expiresAt?: string;
 }
 
 export type CreateSyncResult = {

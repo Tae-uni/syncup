@@ -29,6 +29,7 @@ export default function Sync() {
   const [timeZone, setTimeZone] = useState(getUserTimeZone());
   const [title, setTitle] = useState('');
   const [leaderPasscode, setLeaderPasscode] = useState('');
+  const [expiresInDays, setExpiresInDays] = useState('');
   const [createdSyncId, setCreatedSyncId] = useState<string | null>(null);
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [timesData, setTimesData] = useState<{
@@ -78,6 +79,9 @@ export default function Sync() {
 
     try {
       const description = document.getElementById('sync-description') as HTMLTextAreaElement;
+      const expiresAt = expiresInDays
+        ? new Date(Date.now() + parseInt(expiresInDays) * 24 * 60 * 60 * 1000).toISOString()
+        : undefined;
 
       const result = await createSync({
         title,
@@ -89,6 +93,7 @@ export default function Sync() {
         })),
         timeZone: timeZone,
         leaderPasscode,
+        expiresAt,
       });
 
       if (result.success && result.data) {
@@ -173,6 +178,24 @@ export default function Sync() {
           </p>
         </div>
 
+        <div className="flex flex-col w-full max-w-md">
+          <Label htmlFor="expires-in" className="text-lg mt-8 block text-left">
+            Expiration <span className="text-sm text-gray-400">(Optional)</span>
+          </Label>
+          <select
+            id="expires-in"
+            className="border border-gray-300 rounded-md p-2 mt-2 w-full bg-white text-sm"
+            value={expiresInDays}
+            onChange={(e) => setExpiresInDays(e.target.value)}
+          >
+            <option value="">Default (3 days)</option>
+            <option value="1">1 day</option>
+            <option value="3">3 days</option>
+            <option value="5">5 days</option>
+            <option value="7">7 days</option>
+            <option value="14">14 days</option>
+          </select>
+        </div>
         {/* Sync Calendar */}
         <div className="flex flex-col w-full max-w-md">
           <Label htmlFor="sync-dates" className="text-lg mt-8 block text-left">
