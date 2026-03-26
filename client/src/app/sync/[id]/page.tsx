@@ -9,6 +9,7 @@ import { Card, CardContent } from "@/components/ui/card";
 import MostAvailableTimes from "@/components/sync/MostAvailableTimes";
 import VoterDetails from "@/components/sync/VoterDetails";
 import LoadingSkeleton from "@/components/sync/LoadingSkeleton";
+import SyncExpiredDisplay from "@/components/sync/SyncExpiredDisplay";
 import ErrorDisplay from "@/components/sync/ErrorDisplay";
 import VoteForm from "@/components/sync/VoteForm";
 
@@ -23,6 +24,7 @@ export default function SyncView() {
   const [loading, setLoading] = useState(true);
   const [syncData, setSyncData] = useState<GetSyncPayload | null>(null);
   const [error, setError] = useState<string | null>(null);
+  const [errorCode, setErrorCode] = useState<string | null>(null);
   const [showLocalTime, setShowLocalTime] = useState(false);
   const [voteError, setVoteError] = useState<string | null>(null);
   const [formKey, setFormKey] = useState(0);
@@ -37,8 +39,10 @@ export default function SyncView() {
     if (res.success && res.data) {
       setSyncData(res.data);
       setError(null);
+      setErrorCode(null);
     } else {
       setError(res.error || "Failed to load sync data");
+      setErrorCode(res.errorCode || null);
     }
 
     if (!silent) setLoading(false);
@@ -117,6 +121,9 @@ export default function SyncView() {
   }
 
   if (error) {
+    if (errorCode === 'SYNC_EXPIRED') {
+      return <SyncExpiredDisplay />
+    }
     return <ErrorDisplay message={error} />;
   }
 

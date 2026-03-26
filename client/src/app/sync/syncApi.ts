@@ -54,43 +54,46 @@ type ServerFail =
   | { success: false; errors?: Array<{ path?: string; message: string }> }
   | { success: false; error?: string; code?: string };
 
-async function parseServerError(res: Response): Promise<string> {
+async function parseServerError(res: Response): Promise<{ message: string; code?: string }> {
   try {
     const body = (await res.json()) as ServerFail;
 
     if ("error" in body && typeof body.error === "object") {
-      const { message, details } = body.error;
+      const { code, message, details } = body.error;
 
       // details가 있으면 사용자 친화적 메시지로 변환
       if (details && Array.isArray(details) && details.length > 0) {
-        return details
-          .map((d: { path?: string; message: string }) => humanizeErrorMessage(d.path, d.message))
-          .join("\n");
+        return {
+          message: details.map((d) => humanizeErrorMessage(d.path, d.message)).join("\n"),
+          code,
+        };
       }
 
       if (message) {
-        return humanizeMessage(message);
+        return { message: humanizeMessage(message), code };
       }
     }
 
     if ("errors" in body && body.errors?.length) {
-      return body.errors.map((e) => humanizeErrorMessage(e.path, e.message)).join("\n");
+      return {
+        message: body.errors.map((e) => humanizeErrorMessage(e.path, e.message)).join("\n"),
+      };
     }
 
     if ("error" in body && typeof body.error === "string") {
-      return humanizeMessage(body.error);
+      return { message: humanizeMessage(body.error) };
     }
   } catch {}
 
-  return `Request failed (${res.status})`;
+  return { message: `Request failed (${res.status})`};
 }
 
 async function request<T>(input: RequestInfo, init?: RequestInit): Promise<ApiResponse<T>> {
   const res = await fetch(input, init);
 
   if (!res.ok) {
-    const msg = await parseServerError(res);
-    return { success: false, error: msg };
+    const { message, code } = await parseServerError(res);
+    return { success: false, error: message, errorCode: code };
   }
 
   const json = await res.json();
@@ -120,6 +123,7 @@ export async function createSync(
     timeSelector,
     timeZone: formData.timeZone,
     leaderPasscode: formData.leaderPasscode,
+    ...(formData.expiresAt && { expiresAt: formData.expiresAt }),
   };
 
   console.log("Payload to server:", JSON.stringify(serverData, null, 2));
@@ -170,8 +174,8 @@ export async function deleteSync(syncId: string, leaderPasscode: string): Promis
   });
 
   if (!res.ok) {
-    const msg = await parseServerError(res);
-    return { success: false, error: msg };
+    const { message, code } = await parseServerError(res);
+    return { success: false, error: message, errorCode: code };
   }
 
   return { success: true };

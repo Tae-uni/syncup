@@ -35,6 +35,7 @@ export interface ApiResponse<T> {
   success: boolean;
   data?: T;
   error?: string;
+  errorCode?: string;
 }
 
 // API payloads
@@ -83,6 +84,7 @@ export interface CreateSyncFormData {
   }[];
   timeZone: string;
   leaderPasscode: string;
+  expiresAt?: string;
 }
 
 export type CreateSyncResult = {
