@@ -1,9 +1,9 @@
 import { DateTime } from "luxon";
-import { SyncData } from "@/types/sync";
+import { TimeOptionView } from "@/types/sync";
 import { timezoneUtils } from "@/lib/timezoneConvert";
 
 interface MostAvailableTimesProps {
-  timeOptions: SyncData["data"]["sync"]["timeOptions"];
+  timeOptions: TimeOptionView[];
   totalParticipants: number;
   timeZone: string;
   limit?: number;
@@ -84,7 +84,7 @@ export default function MostAvailableTimes({
 }
 
 function getMostAvailableTimes(
-  timeOptions: SyncData["data"]["sync"]["timeOptions"],
+  timeOptions: TimeOptionView[],
   totalParticipants: number,
   limit?: number
 ) {

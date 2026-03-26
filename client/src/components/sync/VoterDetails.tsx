@@ -4,10 +4,10 @@ import { useState } from "react";
 import { MdKeyboardArrowDown, MdKeyboardArrowUp, MdPersonAdd, MdPersonAddAlt1 } from "react-icons/md";
 
 import { timezoneUtils } from "@/lib/timezoneConvert";
-import { SyncData } from "@/types/sync";
+import { GetSyncPayload } from "@/types/sync";
 
 interface VoterDetailsProps {
-  syncData: SyncData['data'];
+  syncData: GetSyncPayload;
   timeZone: string;
   showLocalTime: boolean;
 }
