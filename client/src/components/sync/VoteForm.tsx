@@ -218,7 +218,7 @@ export default function VoteForm({ syncData, onSubmit, onCancel, showLocalTime, 
                         onCheckedChange={() => toggleTimeOption(option.id)}
                       />
                       {showLocalTime ? (
-                        // Host timezone
+                        // User local timezone
                         formatTimeInUserLocalTimeZone(
                           option.date,
                           option.startTime,
@@ -226,7 +226,7 @@ export default function VoteForm({ syncData, onSubmit, onCancel, showLocalTime, 
                           sync.timeZone
                         )
                       ) : (
-                        // User local timezone
+                        // Host timezone
                         formatTimeInSelectedTimeZone(
                           option.date,
                           option.startTime,

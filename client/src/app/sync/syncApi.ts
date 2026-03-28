@@ -44,13 +44,13 @@ function humanizeMessage(message: string): string {
 
 type ServerFail =
   | {
-      success: false;
-      error?: {
-        code?: string;
-        message?: string;
-        details?: Array<{ path?: string; message: string }>;
-      };
-    }
+    success: false;
+    error?: {
+      code?: string;
+      message?: string;
+      details?: Array<{ path?: string; message: string }>;
+    };
+  }
   | { success: false; errors?: Array<{ path?: string; message: string }> }
   | { success: false; error?: string; code?: string };
 
@@ -83,9 +83,9 @@ async function parseServerError(res: Response): Promise<{ message: string; code?
     if ("error" in body && typeof body.error === "string") {
       return { message: humanizeMessage(body.error) };
     }
-  } catch {}
+  } catch { }
 
-  return { message: `Request failed (${res.status})`};
+  return { message: `Request failed (${res.status})` };
 }
 
 async function request<T>(input: RequestInfo, init?: RequestInit): Promise<ApiResponse<T>> {
@@ -96,8 +96,12 @@ async function request<T>(input: RequestInfo, init?: RequestInit): Promise<ApiRe
     return { success: false, error: message, errorCode: code };
   }
 
-  const json = await res.json();
-  return { success: true, data: json.data as T };
+  try {
+    const json = await res.json();
+    return { success: true, data: json.data as T };
+  } catch {
+    return { success: false, error: "Invalid response from server" };
+  }
 }
 
 export async function createSync(

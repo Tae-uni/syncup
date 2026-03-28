@@ -1,4 +1,4 @@
-import * as bcrypt from "bcrypt";
+import bcrypt from "bcrypt";
 import prisma from "../../config/prisma";
 import { AppError } from "../../middlewares/AppError";
 
@@ -134,6 +134,13 @@ export class VoteService {
     participantName: string,
     passcode: string,
   ) {
+
+    const sync = await prisma.sync.findUnique({ where: { id: syncId } });
+    if (!sync) throw new AppError("Sync not found", 404, "SYNC_NOT_FOUND");
+    if (sync.expiresAt && sync.expiresAt < new Date()) {
+      throw new AppError("This Sync has expired", 410, "SYNC_EXPIRED");
+    }
+
     const participant = await this.verifyParticipant(
       syncId,
       participantName,
@@ -176,11 +183,11 @@ export class VoteService {
     passcode: string,
     timeOptionIds: string[],
   ) {
-    const sync = await prisma.sync.findUnique({
-      where: { id: syncId },
-    });
-    if (!sync) {
-      throw new AppError("Sync not found", 404, "SYNC_NOT_FOUND");
+    const sync = await prisma.sync.findUnique({ where: { id: syncId } });
+    if (!sync) throw new AppError("Sync not found", 404, "SYNC_NOT_FOUND");
+
+    if (sync.expiresAt && sync.expiresAt < new Date()) {
+      throw new AppError("This Sync has expired", 410, "SYNC_EXPIRED");
     }
 
     const timeOptions = await prisma.timeOption.findMany({
@@ -191,7 +198,7 @@ export class VoteService {
     }
 
     const existing = await prisma.participant.findUnique({
-      where: { syncId_name: { syncId, name: participantName}}
+      where: { syncId_name: { syncId, name: participantName } }
     })
 
     if (!existing) {
