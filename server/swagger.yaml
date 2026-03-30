@@ -1,0 +1,11 @@
+openapi: 3.0.0
+info:
+  title: SyncUp API
+  version: 1.0.0
+  description: A lightweight scheduling service API
+
+servers:
+  - url: http://localhost:5002
+    description: Local development server
+
+paths: {}
