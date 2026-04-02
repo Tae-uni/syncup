@@ -8,4 +8,767 @@ servers:
   - url: http://localhost:5002
     description: Local development server
 
-paths: {}
+components:
+  schemas:
+    ErrorResponse:
+      type: object
+      properties:
+        success:
+          type: boolean
+          example: false
+        error:
+          type: object
+          properties:
+            code:
+              type: string
+            message:
+              type: string
+
+    ValidationErrorResponse:
+      type: object
+      properties:
+        success:
+          type: boolean
+          example: false
+        error:
+          type: object
+          properties:
+            code:
+              type: string
+              example: VALIDATION_ERROR
+            message:
+              type: string
+              example: Invalid request body
+            details:
+              type: array
+              items:
+                type: object
+                properties:
+                  field:
+                    type: string
+                  message:
+                    type: string
+
+    SuccessResponse:
+      type: object
+      properties:
+        success:
+          type: boolean
+          example: true
+        data:
+          type: object
+
+paths:
+  /api/sync:
+    post:
+      tags:
+        - Sync
+      summary: Create a new Sync
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              required:
+                - title
+                - timeZone
+                - leaderPasscode
+                - timeSelector
+              properties:
+                title:
+                  type: string
+                  example: New Meeting
+                description:
+                  type: string
+                  example: Weekly Sync
+                timeZone:
+                  type: string
+                  example: Asia/Seoul
+                leaderPasscode:
+                  type: string
+                  example: "1234"
+                expiresAt:
+                  type: string
+                  format: date-time
+                  example: "2026-04-30T00:00:00Z"
+                timeSelector:
+                  type: array
+                  items:
+                    type: object
+                    required:
+                      - date
+                      - startTime
+                      - endTime
+                    properties:
+                      date:
+                        type: string
+                        format: date-time
+                      startTime:
+                        type: string
+                        format: date-time
+                      endTime:
+                        type: string
+                        format: date-time
+      responses:
+        "201":
+          description: Sync created successfully
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  success:
+                    type: boolean
+                    example: true
+                  data:
+                    type: object
+                    properties:
+                      id:
+                        type: string
+                        example: 550e8400-e29b-41d4-a716-446655440000
+        "400":
+          description: Validation error
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ValidationErrorResponse"
+              example:
+                success: false
+                error:
+                  code: VALIDATION_ERROR
+                  message: Invalid request body
+                  details:
+                    - field: title
+                      message: Title is required
+
+        "500":
+          description: Internal server error
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ErrorResponse"
+              example:
+                success: false
+                error:
+                  code: INTERNAL_ERROR
+                  message: An unexpected error occurred
+
+  /api/sync/{id}:
+    get:
+      tags:
+        - Sync
+      summary: Get sync details
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema:
+            type: string
+          example: 550e8400-e29b-41d4-a716-446655440000
+      responses:
+        "200":
+          description: Sync retrieved successfully
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  success:
+                    type: boolean
+                    example: true
+                  data:
+                    type: object
+                    properties:
+                      sync:
+                        type: object
+                        properties:
+                          id:
+                            type: string
+                            example: 550e8400-e29b-41d4-a716-446655440000
+                          title:
+                            type: string
+                            example: New Sync
+                          description:
+                            type: string
+                            example: Weekly Sync
+                          timeZone:
+                            type: string
+                            example: Asia/Seoul
+                          expiresAt:
+                            type: string
+                            format: date-time
+                          timeOptions:
+                            type: array
+                            items:
+                              type: object
+                              properties:
+                                id:
+                                  type: string
+                                startTime:
+                                  type: string
+                                  format: date-time
+                                endTime:
+                                  type: string
+                                  format: date-time
+                                votes:
+                                  type: array
+                                  items:
+                                    type: object
+                                    properties:
+                                      participantId:
+                                        type: string
+                          participants:
+                            type: array
+                            items:
+                              type: object
+                              properties:
+                                id:
+                                  type: string
+                                name:
+                                  type: string
+                                  example: John
+        "404":
+          description: Sync not found
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ErrorResponse"
+              example:
+                success: false
+                error:
+                  code: SYNC_NOT_FOUND
+                  message: Sync not found
+        "410":
+          description: Sync has expired
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ErrorResponse"
+              example:
+                success: false
+                error:
+                  code: SYNC_EXPIRED
+                  message: This Sync has expired
+        "500":
+          description: Internal server error
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ErrorResponse"
+              example:
+                success: false
+                error:
+                  code: INTERNAL_ERROR
+                  message: An unexpected error occurred
+    put:
+      tags:
+        - Sync
+      summary: Update sync
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema:
+            type: string
+          example: 550e8400-e29b-41d4-a716-446655440000
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              required:
+                - title
+                - timeZone
+                - leaderPasscode
+                - timeSelector
+              properties:
+                title:
+                  type: string
+                  example: Updated Sync
+                description:
+                  type: string
+                  example: Updated description
+                timeZone:
+                  type: string
+                  example: Asia/Seoul
+                leaderPasscode:
+                  type: string
+                  example: "1234"
+                expiresAt:
+                  type: string
+                  format: date-time
+                timeSelector:
+                  type: array
+                  items:
+                    type: object
+                    required:
+                      - date
+                      - startTime
+                      - endTime
+                    properties:
+                      date:
+                        type: string
+                        format: date-time
+                      startTime:
+                        type: string
+                        format: date-time
+                      endTime:
+                        type: string
+                        format: date-time
+      responses:
+        "200":
+          description: Sync updated successfully
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  success:
+                    type: boolean
+                    example: true
+                  data:
+                    type: object
+                    properties:
+                      id:
+                        type: string
+                        example: 550e8400-e29b-41d4-a716-446655440000
+        "400":
+          description: Validation error
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ValidationErrorResponse"
+              example:
+                success: false
+                error:
+                  code: VALIDATION_ERROR
+                  message: Invalid request body
+                  details:
+                    - field: title
+                      message: Title is required
+        "401":
+          description: Invalid leader passcode
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ErrorResponse"
+              example:
+                success: false
+                error:
+                  code: INVALID_PASSCODE
+                  message: Invalid passcode
+        "404":
+          description: Sync not found
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ErrorResponse"
+              example:
+                success: false
+                error:
+                  code: SYNC_NOT_FOUND
+                  message: Sync not found
+        "500":
+          description: Internal server error
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ErrorResponse"
+              example:
+                success: false
+                error:
+                  code: INTERNAL_ERROR
+                  message: An unexpected error occurred
+    delete:
+      tags:
+        - Sync
+      summary: Delete sync
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema:
+            type: string
+          example: 550e8400-e29b-41d4-a716-446655440000
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              required:
+                - leaderPasscode
+              properties:
+                leaderPasscode:
+                  type: string
+                  example: "1234"
+      responses:
+        "204":
+          description: Sync deleted successfully
+        "400":
+          description: Validation error
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ValidationErrorResponse"
+              example:
+                success: false
+                error:
+                  code: VALIDATION_ERROR
+                  message: Invalid request body
+                  details:
+                    - field: leaderPasscode
+                      message: Passcode must be 4 digits
+        "401":
+          description: Invalid leader passcode
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ErrorResponse"
+              example:
+                success: false
+                error:
+                  code: INVALID_PASSCODE
+                  message: Invalid passcode
+        "404":
+          description: "Sync not found"
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ErrorResponse"
+              example:
+                success: false
+                error:
+                  code: SYNC_NOT_FOUND
+                  message: Sync not found
+        "500":
+          description: Internal server error
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ErrorResponse"
+              example:
+                success: false
+                error:
+                  code: INTERNAL_ERROR
+                  message: An unexpected error occurred
+
+  /api/sync/{id}/votes:
+    post:
+      tags:
+        - Vote
+      summary: Submit vote
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema:
+            type: string
+          example: 550e8400-e29b-41d4-a716-446655440000
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              required:
+                - participantName
+                - passcode
+                - timeOptionIds
+              properties:
+                participantName:
+                  type: string
+                  example: John
+                passcode:
+                  type: string
+                  example: "1234"
+                timeOptionIds:
+                  type: array
+                  items:
+                    type: string
+                  example: ["550e8400-e29b-41d4-a716-446655440000"]
+      responses:
+        "200":
+          description: Vote submitted successfully
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  success:
+                    type: boolean
+                    example: true
+                  data:
+                    type: object
+                    properties:
+                      participant:
+                        type: object
+                        properties:
+                          id:
+                            type: string
+                          name:
+                            type: string
+                            example: John
+                      voteCount:
+                        type: integer
+                        example: 3
+        "400":
+          description: Validation error
+          content:
+            application/json:
+              schema:
+                oneOf:
+                  - $ref: "#/components/schemas/ValidationErrorResponse"
+                  - $ref: "#/components/schemas/ErrorResponse"
+              examples:
+                validationError:
+                  summary: Schema validation failed
+                  value:
+                    success: false
+                    error:
+                      code: VALIDATION_ERROR
+                      message: Invalid request body
+                      details:
+                        - field: participantName
+                          message: Name is required
+                invalidTimeOptions:
+                  summary: Invalid time option IDs
+                  value:
+                    success: false
+                    error:
+                      code: INVALID_TIME_OPTIONS
+                      message: Invalid time options
+        "401":
+          description: Invalid passcode
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ErrorResponse"
+              example:
+                success: false
+                error:
+                  code: INVALID_PASSCODE
+                  message: Invalid passcode
+        "404":
+          description: Sync not found
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ErrorResponse"
+              example:
+                success: false
+                error:
+                  code: SYNC_NOT_FOUND
+                  message: Sync not found
+        "409":
+          description: Participant name already exists
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ErrorResponse"
+              example:
+                success: false
+                error:
+                  code: PARTICIPANT_EXISTS
+                  message: Participant already exists
+        "410":
+          description: Sync has expired
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ErrorResponse"
+              example:
+                success: false
+                error:
+                  code: SYNC_EXPIRED
+                  message: This Sync has expired
+        "500":
+          description: Internal server error
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ErrorResponse"
+              example:
+                success: false
+                error:
+                  code: INTERNAL_ERROR
+                  message: An unexpected error occurred
+    delete:
+      tags:
+        - Vote
+      summary: Cancel vote
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema:
+            type: string
+          example: 550e8400-e29b-41d4-a716-446655440000
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              required:
+                - participantName
+                - passcode
+              properties:
+                participantName:
+                  type: string
+                  example: John
+                passcode:
+                  type: string
+                  example: "1234"
+      responses:
+        "200":
+          description: Vote cancelled successfully
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  success:
+                    type: boolean
+                    example: true
+                  data:
+                    type: object
+                    properties:
+                      deletedParticipantId:
+                        type: string
+                        example: 550e8400-e29b-41d4-a716-446655440000
+        "401":
+          description: Invalid passcode
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ErrorResponse"
+              example:
+                success: false
+                error:
+                  code: INVALID_PASSCODE
+                  message: Invalid passcode
+        "404":
+          description: Sync or participant not found
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ErrorResponse"
+              example:
+                success: false
+                error:
+                  code: PARTICIPANT_NOT_FOUND
+                  message: Participant not found
+        "410":
+          description: Sync has expired
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ErrorResponse"
+              example:
+                success: false
+                error:
+                  code: SYNC_EXPIRED
+                  message: This Sync has expired
+        "500":
+          description: Internal server error
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ErrorResponse"
+              example:
+                success: false
+                error:
+                  code: INTERNAL_ERROR
+                  message: An unexpected error occurred
+
+  /api/sync/{id}/verify-leader:
+    post:
+      tags:
+        - Sync
+      summary: Verify leader passcode
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema:
+            type: string
+          example: 550e8400-e29b-41d4-a716-446655440000
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              required:
+                - leaderPasscode
+              properties:
+                leaderPasscode:
+                  type: string
+                  example: "1234"
+      responses:
+        "200":
+          description: Passcode verified successfully
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  success:
+                    type: boolean
+                    example: true
+                  data:
+                    type: object
+                    properties:
+                      message:
+                        type: string
+                        example: Passcode verified successfully
+        "400":
+            description: Validation error
+            content:
+              application/json:
+                schema:
+                  $ref: "#/components/schemas/ValidationErrorResponse"
+                example:
+                  success: false
+                  error:
+                    code: VALIDATION_ERROR
+                    message: Invalid request body
+                    details:
+                      - field: leaderPasscode
+                        message: Passcode must be 4 digits
+        "401":
+          description: Invalid leader passcode
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ErrorResponse"
+              example:
+                success: false
+                error:
+                  code: INVALID_PASSCODE
+                  message: Invalid passcode
+        "404":
+          description: Sync not found
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ErrorResponse"
+              example:
+                success: false
+                error:
+                  code: SYNC_NOT_FOUND
+                  message: Sync not found
+        "500":
+          description: Internal server error
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ErrorResponse"
+              example:
+                success: false
+                error:
+                  code: INTERNAL_ERROR
+                  message: An unexpected error occurred
