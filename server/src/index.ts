@@ -2,9 +2,9 @@ import express from 'express';
 import cors from 'cors';
 
 import syncRoutes from './features/sync/routes';
-import testRoutes from './features/test';
 import { errorHandler } from './middlewares/errorHandler';
 import { startCleanupJob } from './jobs/cleanupExpiredSyncs';
+import { setupSwagger } from './config/swagger';
 
 const app = express();
 const PORT = process.env.PORT || 5002;
@@ -13,7 +13,7 @@ app.use(cors());
 app.use(express.json());
 
 app.use('/api/sync', syncRoutes);
-app.use('/api/test', testRoutes);
+setupSwagger(app);
 app.use(errorHandler);
 app.get('/', (_req, res) => {
   res.send("TypeScript Express Server is running!");
