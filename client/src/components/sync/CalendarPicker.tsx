@@ -1,11 +1,4 @@
-import { useState } from "react";
-import { CalendarIcon } from "lucide-react";
-
-import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover";
-import { Button } from "@/components/ui/button";
 import { Calendar } from "@/components/ui/calendar";
-
-import { cn } from "@/lib/utils";
 
 interface CalendarPickerProps {
   onSelectDate: (dates: Date[] | undefined) => void;
@@ -16,10 +9,8 @@ interface CalendarPickerProps {
 export default function CalendarPicker({
   onSelectDate,
   selected,
-  maxDates = 10
+  maxDates = 10,
 }: CalendarPickerProps) {
-  const [isOpen, setIsOpen] = useState(false);
-
   const handleSelect = (dates: Date[] | undefined) => {
     if (!dates) {
       onSelectDate(dates);
@@ -35,27 +26,19 @@ export default function CalendarPicker({
   };
 
   return (
-    <Popover open={isOpen} onOpenChange={setIsOpen}>
-      <PopoverTrigger asChild>
-        <Button
-          variant="outline"
-          className={cn(
-            "w-full justify-start text-left font-normal",
-            !selected?.length && "text-muted-foreground"
-          )}
-        >
-          <CalendarIcon className="mr-2 h-4 w-4" />
-          <span>Pick a date</span>
-        </Button>
-      </PopoverTrigger>
-      <PopoverContent className="w-auto p-0" align="start">
-        <Calendar
-          mode="multiple"
-          selected={selected}
-          onSelect={handleSelect}
-          initialFocus
-        />
-      </PopoverContent>
-    </Popover>
-  )
+    <Calendar
+      mode="multiple"
+      selected={selected}
+      onSelect={handleSelect}
+      disabled={{ before: new Date() }}
+      className="rounded-xl border border-border w-full p-4"
+      classNames={{
+        head_cell: "text-muted foreground rounded-md w-10 font-normal text-[0.8rem]",
+        day: "h-10 w-10 p-0 font-normal rounded-md aria-selected:opacity-100",
+        cell: "relative p-0.4 text-center text-sm focus-within:relative focus-within:z-20",
+        day_today: "border border-primary/40 text-foreground font-medium rounded-md",
+        day_disabled: "text-muted-foreground/40 cursor-not-allowed",
+      }}
+    />
+  );
 }
