@@ -33,9 +33,10 @@ export default function CalendarPicker({
       disabled={{ before: new Date() }}
       className="rounded-xl border border-border w-full p-4"
       classNames={{
-        head_cell: "text-muted foreground rounded-md w-10 font-normal text-[0.8rem]",
-        day: "h-10 w-10 p-0 font-normal rounded-md aria-selected:opacity-100",
-        cell: "relative p-0.4 text-center text-sm focus-within:relative focus-within:z-20",
+        head_cell: "text-muted-foreground rounded-md w-10 font-normal text-[0.8rem] text-center",
+        row: "flex w-full mt-0.5",
+        day: "h-10 w-10 p-0 font-normal rounded-full aria-selected:opacity-100",
+        cell: "relative p-0 text-center text-sm focus-within:relative focus-within:z-20",
         day_today: "border border-primary/40 text-foreground font-medium rounded-md",
         day_disabled: "text-muted-foreground/40 cursor-not-allowed",
       }}
