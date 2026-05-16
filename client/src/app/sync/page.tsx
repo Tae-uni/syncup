@@ -1,35 +1,38 @@
 "use client";
 
-import { useEffect, useState } from "react";
+import { useState } from "react";
 import { toast } from "sonner";
+import Link from "next/link";
 
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
-import { Textarea } from "@/components/ui/textarea";
+import { Button } from "@/components/ui/button";
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from "@/components/ui/select";
+
 import CalendarPicker from "@/components/sync/CalendarPicker";
 import TimeSelector from "@/components/sync/TimeSelector";
-import DatePill from "@/components/sync/DatePill";
-import { Button } from "@/components/ui/button";
 import TimeZoneSelector from "@/components/sync/TimeZoneSelector";
-
-import { getUserTimeZone } from "@/lib/timezoneConvert";
-
-import { createSync } from "./syncApi";
 import SyncCreatedSuccess from "@/components/sync/SyncCreatedSuccess";
 
-export default function Sync() {
-  useEffect(() => {
-    fetch('http://localhost:5002/api/test')
-      .then(res => res.json())
-      .then(data => console.log('Ping response:', data))
-      .catch(err => console.error('Ping error:', err));
-  }, []);
+import { cn } from "@/lib/utils";
+import { getUserTimeZone } from "@/lib/timezoneConvert";
+import { createSync } from "./syncApi";
+import { Calendar1, Clock, Globe } from "lucide-react";
 
+export default function Sync() {
   const [selectedDates, setSelectedDates] = useState<Date[]>([]);
   const [timeZone, setTimeZone] = useState(getUserTimeZone());
-  const [title, setTitle] = useState('');
-  const [leaderPasscode, setLeaderPasscode] = useState('');
-  const [expiresInDays, setExpiresInDays] = useState('');
+  const [title, setTitle] = useState("");
+  const [isTitleFocused, setIsTitleFocused] = useState(false);
+  const [description, setDescription] = useState("")
+  const [leaderPasscode, setLeaderPasscode] = useState("");
+  const [expiresInDays, setExpiresInDays] = useState("");
   const [createdSyncId, setCreatedSyncId] = useState<string | null>(null);
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [timesData, setTimesData] = useState<{
@@ -45,7 +48,7 @@ export default function Sync() {
       timeZone,
     });
 
-    if (!title) {
+    if (!title.trim()) {
       toast.error('Please enter a title');
       return;
     }
@@ -78,20 +81,19 @@ export default function Sync() {
     setIsSubmitting(true);
 
     try {
-      const description = document.getElementById('sync-description') as HTMLTextAreaElement;
       const expiresAt = expiresInDays
         ? new Date(Date.now() + parseInt(expiresInDays) * 24 * 60 * 60 * 1000).toISOString()
         : undefined;
 
       const result = await createSync({
         title,
-        description: description.value,
-        timeSelector: timesData.map(t => ({
+        description,
+        timeSelector: timesData.map((t) => ({
           date: t.date,
           startTime: t.start,
           endTime: t.end,
         })),
-        timeZone: timeZone,
+        timeZone,
         leaderPasscode,
         expiresAt,
       });
@@ -113,143 +115,127 @@ export default function Sync() {
   }
 
   return (
-    <>
-      <header>
-        <h1 className="text-4xl font-bold text-center mt-20">
-          Create a New Sync
-        </h1>
-      </header>
-      <main className="flex flex-col items-center justify-center p-10">
-        <div className="flex flex-col w-full max-w-md">
-          <Label htmlFor="timezone-label" className="text-lg mt-8 block text-left">
-            Timezone
-          </Label>
-          <div className="mt-2">
-            <TimeZoneSelector value={timeZone} onChange={setTimeZone} />
-          </div>
-          <p className="text-sm text-gray-500 mt-2">
-            The timezone of the sync will be automatically set to your browser's timezone.
-          </p>
-        </div>
-        <div className="flex flex-col w-full max-w-md">
-          <Label htmlFor="sync-title" className="text-lg mt-8 block text-left">
-            Sync Title
-          </Label>
-          <Input
-            id="sync-title"
-            type="text"
-            placeholder="Enter the title"
-            className="border border-gray-300 rounded-md p-2 mt-2 w-full"
-            value={title}
-            onChange={(e) => setTitle(e.target.value)}
-          />
-        </div>
-        <div className="flex flex-col w-full max-w-md">
-          <Label htmlFor="sync-description" className="text-lg mt-8 block text-left">
-            Sync Description
-          </Label>
-          <Textarea
-            id="sync-description"
-            name="description"
-            placeholder="Enter the description"
-            className="border border-gray-300 rounded-md p-2 mt-2 w-full"
-            rows={3}
-            cols={40}
-          >
-          </Textarea>
-        </div>
+    <div className="min-h-screen flex flex-col">
+      {/* Navbar */}
+      <nav className="flex items-center justify-between px-8 py-5 border-b border-border">
+        <Link href="/">
+          <span className="text-lg font-semibold tracking-tight">SyncUp</span>
+        </Link>
+      </nav>
 
-
-        <div className="flex flex-col w-full max-w-md">
-          <Label htmlFor="leader-passcode" className="text-lg mt-8 block text-left">
-            Leader Passcode
-          </Label>
-          <Input
-            id="leader-passcode"
-            type="password"
-            placeholder="Enter a 4-digit passcode"
-            className="border border-gray-300 rounded-md p-2 mt-2 w-full"
-            value={leaderPasscode}
-            onChange={(e) => setLeaderPasscode(e.target.value)}
-            maxLength={4}
-          />
-          <p className="text-sm text-gray-500 mt-2">
-            You&apos;ll need this passcode to edit or manage the sync later.
-          </p>
-        </div>
-
-        <div className="flex flex-col w-full max-w-md">
-          <Label htmlFor="expires-in" className="text-lg mt-8 block text-left">
-            Expiration <span className="text-sm text-gray-400">(Optional)</span>
-          </Label>
-          <select
-            id="expires-in"
-            className="border border-gray-300 rounded-md p-2 mt-2 w-full bg-white text-sm"
-            value={expiresInDays}
-            onChange={(e) => setExpiresInDays(e.target.value)}
-          >
-            <option value="">Default (3 days)</option>
-            <option value="1">1 day</option>
-            <option value="3">3 days</option>
-            <option value="5">5 days</option>
-            <option value="7">7 days</option>
-            <option value="14">14 days</option>
-          </select>
-        </div>
-        {/* Sync Calendar */}
-        <div className="flex flex-col w-full max-w-md">
-          <Label htmlFor="sync-dates" className="text-lg mt-8 block text-left">
-            Sync Dates
-          </Label>
-          <div className="border border-gray-300 rounded-md p-2 mt-2 w-full">
-            <CalendarPicker
-              onSelectDate={(dates: Date[] | undefined) => setSelectedDates(dates || [])}
-              selected={selectedDates}
-              maxDates={10}
+      {/* Page Header */}
+      <div className="px-4 sm:px-8 lg:px-16 pt-14 pb-8">
+        <div className="max-w-5xl mx-auto flex items-start justify-between gap-4">
+          <div className="flex-1 min-w-0">
+            <h1
+              contentEditable
+              suppressContentEditableWarning
+              onFocus={() => setIsTitleFocused(true)}
+              onBlur={(e) => {
+                setIsTitleFocused(false);
+                setTitle(e.currentTarget.textContent?.trim() || "")
+              }}
+              data-placeholder="Untitled Sync"
+              className={cn(
+                "text-3xl font-bold tracking-tight outline-none cursor-text pb-1",
+                "empty:before:content-[attr(data-placeholder)] empty:before:text-muted-foreground/50",
+                !title && !isTitleFocused && "border-b-2 border-primary/25 max-w-[220px]"
+              )}
             />
-            {selectedDates.length > 0 && (
-              <div className="mt-4 flex flex-wrap gap-2">
-                {selectedDates.map((date, index) => (
-                  <span
-                    key={index}
-                    className="bg-blue-100 text-blue-800 px-2 py-1 rounded-md text-sm"
-                  >
-                    {date.toLocaleDateString()}
-                  </span>
-                ))}
+            <p
+              contentEditable
+              suppressContentEditableWarning
+              onBlur={(e) => setDescription(e.currentTarget.textContent?.trim() || "")}
+              data-placeholder="Add a description..."
+              className={
+                `text-base text-muted-foreground mt-2 outline-none cursor-text w-fit min-w-[180px]
+              border-b border-border pb-0.5
+              empty:before:content-[attr(data-placeholder)]
+              empty:before:text-muted-foreground/40`
+              }
+            />
+          </div>
+          <div className="flex items-center gap-1.5 shrink-0 px-2.5 py-1 rounded-full border border-border bg-background text-xs text-muted-foreground">
+            <Globe className="w-3.5 h-3.5 shrink-0" />
+            <TimeZoneSelector value={timeZone} onChange={setTimeZone} className="border-0 shadow-none h-auto py-0 text-xs font-normal bg-transparent hover:bg-transparent" />
+          </div>
+
+        </div>
+      </div>
+
+      <main className="flex-1 px-4 sm:px-8 lg:px-16 py-12">
+        <div className="max-w-5xl mx-auto flex flex-col gap-8">
+          <div className="flex flex-col lg:flex-row gap-10 lg:gap-12 xl:gap-14">
+            <div className="flex flex-col gap-3 mx-auto lg:mx-0 lg:flex-none">
+              <div className="flex items-center gap-1.5">
+                <Calendar1 className="w-4 h-4 text-muted-foreground" />
+                <Label className="text-base font-semibold">Dates</Label>
               </div>
-            )}
+              <CalendarPicker
+                onSelectDate={(dates) => setSelectedDates(dates || [])}
+                selected={selectedDates}
+                maxDates={10}
+              />
+              {selectedDates.length > 0 && (
+                <p className="text-sm text-muted-foreground">
+                  {selectedDates.length} date{selectedDates.length > 1 ? "s" :
+                    ""} selected
+                </p>
+              )}
+            </div>
+
+            <div className="flex-1 flex flex-col gap-3">
+              <div className="flex items-center gap-1.5">
+                <Clock className="w-4 h-4 text-muted-foreground" />
+                <Label className="text-base font-semibold">Times</Label>
+              </div>
+              <TimeSelector
+                selectedDates={selectedDates}
+                onChange={setTimesData}
+              />
+            </div>
           </div>
-        </div>
+          <div className="border-t border-border" />
+            <div className="flex flex-col sm:flex-row sm:items-start gap-4">
+              <div className="flex flex-col gap-1.5 w-full sm:w-48">
+                <Label className="text-sm" htmlFor="leader-passcode">Leader Passcode</Label>
+                <Input
+                  id="leader-passcode"
+                  type="password"
+                  placeholder="4-digit passcode"
+                  value={leaderPasscode}
+                  onChange={(e) => setLeaderPasscode(e.target.value)}
+                  maxLength={4}
+                />
+              </div>
+              <div className="flex flex-col gap-1.5 w-full sm:w-44">
+                <Label className="text-sm">Expiration</Label>
+                <Select value={expiresInDays} onValueChange={setExpiresInDays}>
+                  <SelectTrigger>
+                    <SelectValue placeholder="Default (3 days)" />
+                  </SelectTrigger>
+                  <SelectContent>
+                    <SelectItem value="1">1 day</SelectItem>
+                    <SelectItem value="3">3 days</SelectItem>
+                    <SelectItem value="5">5 days</SelectItem>
+                    <SelectItem value="7">7 days</SelectItem>
+                    <SelectItem value="14">14 days</SelectItem>
+                  </SelectContent>
+                </Select>
+              </div>
+            </div>
 
-        {/* Date Pills */}
-        {/* <div className="flex flex-wrap gap-2">
-          {selectedDates.map((date, index) => (
-            <DatePill key={index} date={date} />
-          ))}
-        </div> */}
+            <div className="flex justify-end gap-3">
+              <Link href="/">
+                <Button variant="outline">Cancel</Button>
+              </Link>
+              <Button onClick={handleSubmit} disabled={isSubmitting}>
+                {isSubmitting ? "Creating..." : "Create Sync"}
+              </Button>
+            </div>
 
-        {/* Time Selector */}
-        <div className="flex flex-col w-full max-w-md">
-          <Label htmlFor="sync-dates" className="text-lg mt-8 block text-left">
-            Sync Times
-          </Label>
-          <div className="border border-gray-300 rounded-md p-2 mt-2 w-full">
-            <TimeSelector
-              selectedDates={selectedDates}
-              onChange={setTimesData}
-            />
           </div>
-        </div>
-
-        {/* Button */}
-        <div className="flex justify-center mt-8">
-          <Button type="button" variant="outline" className="mr-4">Cancel</Button>
-          <Button type="submit" onClick={handleSubmit} disabled={isSubmitting} className="bg-blue-500 text-white hover:bg-blue-600">
-            {isSubmitting ? 'Creating...' : 'Create Sync'}
-          </Button>
-        </div>
       </main>
-    </>
+    </div>
   )
 }
