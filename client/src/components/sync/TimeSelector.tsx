@@ -55,9 +55,21 @@ export default function TimeSelector({ selectedDates, onChange, initialSlots }: 
   }, [initialSlots]);
 
   useEffect(() => {
+    const selectedDateKeys = new Set(selectedDates.map(formatDateToLocalString));
+    setDateTimeSlots(prev => {
+      const next: typeof prev = {};
+      for (const key of Object.keys(prev)) {
+        if (selectedDateKeys.has(key)) next[key] = prev[key];
+      }
+      return next;
+    });
+  }, [selectedDates]);
+
+  useEffect(() => {
     const timesData: Array<{ date: Date; start: string; end: string }> = [];
     Object.entries(dateTimeSlots).forEach(([dateStr, slots]) => {
-      const date = new Date(dateStr);
+      const [year, month, day] = dateStr.split('-').map(Number);
+      const date = new Date(year, month - 1, day);
       slots.forEach(({ start, end }) => {
         timesData.push({ date, start, end });
       });
