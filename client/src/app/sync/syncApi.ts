@@ -108,7 +108,10 @@ export async function createSync(
   formData: CreateSyncFormData,
 ): Promise<ApiResponse<CreateSyncResult>> {
   const timeSelector = formData.timeSelector.map((item) => {
-    const dateStr = item.date.toISOString().split("T")[0];
+    const year = item.date.getFullYear();
+    const month = String(item.date.getMonth() + 1).padStart(2, "0");
+    const day = String(item.date.getDate()).padStart(2, "0");
+    const dateStr = `${year}-${month}-${day}`;
 
     const startInUTC = convertToUTC(dateStr, item.startTime, formData.timeZone);
     const endInUTC = convertToUTC(dateStr, item.endTime, formData.timeZone);
@@ -151,7 +154,10 @@ export async function updateSync(
   formData: CreateSyncFormData,
 ): Promise<ApiResponse<CreateSyncResult>> {
   const timeSelector = formData.timeSelector.map((item) => {
-    const dateStr = item.date.toISOString().split("T")[0];
+    const year = item.date.getFullYear();
+    const month = String(item.date.getMonth() + 1).padStart(2, "0");
+    const day = String(item.date.getDate()).padStart(2, "0");
+    const dateStr = `${year}-${month}-${day}`;
     const startInUTC = convertToUTC(dateStr, item.startTime, formData.timeZone);
     const endInUTC = convertToUTC(dateStr, item.endTime, formData.timeZone);
     return { date: dateStr, startTime: startInUTC, endTime: endInUTC };
