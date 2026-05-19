@@ -42,14 +42,14 @@ export default function Sync() {
   }[]>([]);
 
   const handleSubmit = async () => {
-    console.log('Submitting sync data:', {
-      title,
-      timeSelector: timesData,
-      timeZone,
-    });
+    // console.log('Submitting sync data:', {
+    //   title,
+    //   timeSelector: timesData,
+    //   timeZone,
+    // });
 
     if (!title.trim()) {
-      toast.error('Please enter a title');
+      toast.error("Please enter a title");
       return;
     }
 
@@ -59,7 +59,12 @@ export default function Sync() {
     }
 
     if (timesData.length === 0) {
-      toast.error('Please add at least one time slot');
+      toast.error("Please add at least one time slot");
+      return;
+    }
+
+    if (leaderPasscode.length !== 4) {
+      toast.error("Passcode must be 4 digits");
       return;
     }
 
@@ -204,7 +209,10 @@ export default function Sync() {
                   type="password"
                   placeholder="4-digit passcode"
                   value={leaderPasscode}
-                  onChange={(e) => setLeaderPasscode(e.target.value)}
+                  onChange={(e) => {
+                    const val = e.target.value.replace(/\D/g, "").slice(0,4);
+                    setLeaderPasscode(val);
+                  }}
                   maxLength={4}
                 />
               </div>
