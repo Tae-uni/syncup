@@ -3,15 +3,14 @@
 import { useCallback, useEffect, useState } from "react";
 import { useParams } from "next/navigation";
 import { toast } from "sonner";
-import { RiTimeLine } from "react-icons/ri";
-import { MdAccessTime, MdHowToVote, MdOutlineCalendarMonth, MdPeopleAlt, MdShare, MdTimer } from "react-icons/md";
-import { Card, CardContent } from "@/components/ui/card";
+import { MdShare, MdEdit } from "react-icons/md";
 import MostAvailableTimes from "@/components/sync/MostAvailableTimes";
 import VoterDetails from "@/components/sync/VoterDetails";
 import LoadingSkeleton from "@/components/sync/LoadingSkeleton";
 import SyncExpiredDisplay from "@/components/sync/SyncExpiredDisplay";
 import ErrorDisplay from "@/components/sync/ErrorDisplay";
 import VoteForm from "@/components/sync/VoteForm";
+import BestMatchCard from "@/components/sync/BestMatchCard";
 
 import { GetSyncPayload, VoteSubmitData } from "@/types/sync";
 import { getSync, submitVote, cancelVote } from "../syncApi";
@@ -132,118 +131,140 @@ export default function SyncView() {
   }
 
   const { sync } = syncData;
+  const isExpired = sync.expiresAt ? new Date(sync.expiresAt) < new Date() : false;
+  const bestMatch = [...(sync.timeOptions || [])].sort((a, b) => b.votes.length - a.votes.length)[0];
 
   return (
-    <main className="max-w-4xl mx-auto mt-8">
-      <Card className="overflow-hidden shadow-xl">
-        <div className="bg-gradient-to-br from-orange-400 to-teal-400 p-6 pb-4 relative">
-          <header>
-            <h1 className="text-2xl font-bold text-white mb-1">{sync.title}</h1>
-            {sync.description && (
-              <p className="text-white/90 text-base mb-3">{sync.description}</p>
-            )}
-            <div className="flex flex-wrap items-center gap-3 text-white/80 text-base">
-              <span><RiTimeLine className="inline mr-1" />{sync.timeZone}</span>
-              <span><MdPeopleAlt className="inline mr-1" />{sync.participants?.length || 0} Participants</span>
-              <span><MdTimer className="inline mr-1" />Expires: {sync.expiresAt ? new Date(sync.expiresAt).toLocaleDateString() : 'No expiration'}</span>
-              <div className="flex items-center gap-2">
-                <MdAccessTime className="text-gray-500" />
-                <div className="flex items-center gap-2">
-                  <span className="text-sm text-gray-600">Show local time</span>
-                  <Switch
-                    checked={showLocalTime}
-                    onCheckedChange={setShowLocalTime}
-                    className="data-[state=checked]:bg-teal-500"
-                  />
-                </div>
-              </div>
-              <button className="ml-auto"><MdShare className="inline" /></button>
-            </div>
-          </header>
+    <main className="max-w-2xl mx-auto px-4 py-10">
+
+      {/* Top bar */}
+      <div className="flex items-center justify-between mb-6 text-sm text-gray-400">
+        <div className="flex items-center gap-2">
+          <span className={`text-xs font-medium px-2 py-0.5 rounded-full ${isExpired ? "bg-gray-100 text-gray-500" : "bg-green-100 text-green-700"}`}>
+            {isExpired ? "Expired" : "Live"}
+          </span>
+          <span>·</span>
+          <span>{sync.participants?.length || 0} voted</span>
+          <span>·</span>
+          <span className="text-xs uppercase tracking-wide">
+            EXPIRES {sync.expiresAt ? new Date(sync.expiresAt).toLocaleDateString("en-US", {
+              month: "short", day: "numeric"
+            }) : "—"}
+          </span>
         </div>
-        {/* Components*/}
-        <CardContent className="bg-white p-6 space-y-8">
-          {/* Most Available Time */}
-          <section>
-            <h2 className="flex gap-2 items-center text-xl font-semibold mb-2">
-              <MdOutlineCalendarMonth className="text-xl" />
-              Most Available Time
-            </h2>
-            <MostAvailableTimes
-              timeOptions={sync.timeOptions || []}
-              totalParticipants={sync.participants?.length || 0}
-              timeZone={sync.timeZone}
-              showLocalTime={showLocalTime}
-              limit={2}
-            />
-          </section>
-          {/* Availability Heatmap or Grid */}
-          {/* <section>
-            <h2 className="text-base font-semibold mb-2 text-gray-700">Availability</h2>
-          </section> */}
+        <div className="flex items-center gap-3">
+          <button className="flex items-center gap-1 hover:text-gray-700">
+            <MdEdit /> Edit
+          </button>
+          <button className="flex items-center gap-1 hover:text-gray-700">
+            <MdShare /> Share
+          </button>
+        </div>
+      </div>
 
-          {/* Vote Form */}
-          <section>
-            <h2 className="flex gap-2 items-center text-xl font-semibold mb-4">
-              <MdHowToVote className="text-xl" />
-              Vote Your Availability
-            </h2>
-            {/* <p className="text-sm text-gray-500 italic">Please select all times that work for you</p>
-            <hr className="mt-2 mb-4" /> */}
-            <VoteForm
-              syncData={syncData}
-              showLocalTime={showLocalTime}
-              error={voteError}
-              formKey={formKey}
-              onSubmit={async (data) => {
-                setVoteError(null);
-                optimisticVoteSubmit(data);
+      {/* Header */}
+      <header className="mb-8">
+        <h1 className="text-4xl font-bold tracking-tight mb-2">{sync.title}</h1>
+        {sync.description && (
+          <p className="text-gray-500 mb-4">{sync.description}</p>
+        )}
+        <div className="flex flex-wrap items-center gap-4 text-sm text-gray-500">
+          <span>{sync.timeZone}</span>
+          <span>{sync.participants?.length || 0} participants</span>
+          <span>{sync.timeOptions?.length || 0} dates</span>
+          <div className="flex items-center gap-2 ml-auto">
+            <span className="text-xs">Show in my time</span>
+            <Switch checked={showLocalTime} onCheckedChange={setShowLocalTime} />
+          </div>
+        </div>
+      </header>
 
-                const res = await submitVote(id, data);
+      {bestMatch && (
+        <BestMatchCard 
+          timeOption={bestMatch}
+          totalParticipants={sync.participants?.length || 0}
+          participants={sync.participants || []}
+          timeZone={sync.timeZone}
+          showLocalTime={showLocalTime}
+        />
+      )}
 
-                if (!res.success) {
-                  setVoteError(res.error || "Invalid passcode");
-                  await fetchSyncData({ silent: true });
-                  return;
-                }
+      {/* 01 All time options */}
+      <section className="mb-10">
+        <div className="flex items-baseline gap-3 mb-4">
+          <span className="text-xs text-gray-300 font-mono">01</span>
+          <h2 className="font-semibold">All time options</h2>
+          <span className="ml-auto text-xs text-gray-400">Ranked by vote</span>
+        </div>
+        <MostAvailableTimes
+          timeOptions={sync.timeOptions || []}
+          totalParticipants={sync.participants?.length || 0}
+          timeZone={sync.timeZone}
+          showLocalTime={showLocalTime}
+        />
+      </section>
 
-                toast.success("Vote submitted successfully!");
-                setFormKey(prev => prev + 1);
-                await fetchSyncData({ silent: true });
-              }}
-              onCancel={async (participantName, passcode) => {
-                setVoteError(null);
-                voteCancel(participantName, passcode);
+      {/* 02 Cast your vote */}
+      <section className="mb-10">
+        <div className="flex items-baseline gap-3 mb-4">
+          <span className="text-xs text-gray-300 font-mono">02</span>
+          <h2 className="font-semibold">Cast your vote</h2>
+          <span className="ml-auto text-xs text-gray-400">Select all times you're available</span>
+        </div>
+        <VoteForm
+          syncData={syncData}
+          showLocalTime={showLocalTime}
+          error={voteError}
+          formKey={formKey}
+          onSubmit={async (data) => {
+            setVoteError(null);
+            optimisticVoteSubmit(data);
 
-                const res = await cancelVote(id, participantName, passcode);
+            const res = await submitVote(id, data);
 
-                if (!res.success) {
-                  setVoteError(res.error || "Invalid passcode");
-                  await fetchSyncData({ silent: true });
-                  return;
-                }
+            if (!res.success) {
+              setVoteError(res.error || "Invalid passcode");
+              await fetchSyncData({ silent: true });
+              return;
+            }
 
-                toast.success("Vote cancelled successfully");
-                setFormKey(prev => prev + 1);
-                await fetchSyncData({ silent: true });
-              }}
-            />
-          </section>
+            toast.success("Vote submitted successfully!");
+            setFormKey(prev => prev + 1);
+            await fetchSyncData({ silent: true });
+          }}
+          onCancel={async (participantName, passcode) => {
+            setVoteError(null);
+            voteCancel(participantName, passcode);
 
-          {/* Voter Details */}
-          <section>
-            {/* <h2 className="flex gap-2 items-center text-xl font-semibold mb-2 text-gray-700">
-              <MdGroup className="text-2xl" />
-              Voter Details
-            </h2> */}
-            <VoterDetails
-              syncData={syncData}
-              timeZone={sync.timeZone}
-              showLocalTime={showLocalTime}
-            />
-          </section>
-        </CardContent>
-      </Card>
+            const res = await cancelVote(id, participantName, passcode);
+
+            if (!res.success) {
+              setVoteError(res.error || "Invalid passcode");
+              await fetchSyncData({ silent: true });
+              return;
+            }
+
+            toast.success("Vote cancelled successfully");
+            setFormKey(prev => prev + 1);
+            await fetchSyncData({ silent: true });
+          }}
+        />
+      </section>
+
+      {/* 03 Participants */}
+      <section className="mb-10">
+        <div className="flex items-baseline gap-3 mb-4">
+          <span className="text-xs text-gray-300 font-mono">03</span>
+          <h2 className="font-semibold">
+            Participants <span className="text-gray-400 font-normal">({sync.participants?.length || 0})</span>
+          </h2>
+        </div>
+        <VoterDetails
+          syncData={syncData}
+          timeZone={sync.timeZone}
+          showLocalTime={showLocalTime}
+        />
+      </section>
     </main>
   );
 }
