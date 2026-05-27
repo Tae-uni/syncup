@@ -199,6 +199,7 @@ export default function SyncView() {
         <MostAvailableTimes
           timeOptions={sync.timeOptions || []}
           totalParticipants={sync.participants?.length || 0}
+          participants={sync.participants || []}
           timeZone={sync.timeZone}
           showLocalTime={showLocalTime}
         />
