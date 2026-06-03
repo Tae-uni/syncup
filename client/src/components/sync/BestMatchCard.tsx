@@ -28,7 +28,7 @@ export default function BestMatchCard({
   const voters = participants.filter((p) => voterIds.has(p.id));
 
   return (
-    <div className="bg-slate-800 text-white rounded-xl p-6 mb-10">
+    <div className="bg-slate-800 text-white rounded-xl p-6">
       <p className="text-xs text-gray-400 uppercase tracking-widest mb-4">
         Best Match
       </p>

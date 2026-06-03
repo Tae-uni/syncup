@@ -119,7 +119,7 @@ export default function VoteForm({ syncData, onSubmit, onCancel, showLocalTime, 
 
   return (
     <form onSubmit={handleSubmit} className="space-y-6">
-      <div>
+      <div className="p-0.5">
         <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
           <div className="relative flex items-center">
             <MdPerson className="absolute left-3 text-gray-400" />
@@ -150,7 +150,7 @@ export default function VoteForm({ syncData, onSubmit, onCancel, showLocalTime, 
           <p className="text-xs text-red-500 mt-2">{displayError}</p>
         )}
         {isUpdate && !displayError && (
-          <p className="text-xs text-teal-600 mt-2 flex items-center gap-1">
+          <p className="text-xs text-primary mt-2 flex items-center gap-1">
             <MdEdit className="text-sm" />
             Updating vote for <strong>{name}</strong> - enter passcode to confirm
           </p>
@@ -159,7 +159,7 @@ export default function VoteForm({ syncData, onSubmit, onCancel, showLocalTime, 
 
       {/* Time Options */}
       <div>
-        <p className="text-xs text-gray-400 uppercase tracking-widest mb-3">Available Times</p>
+        <p className="text-xs text-gray-500 uppercase tracking-widest mb-3">Available Times</p>
         <div className="space-y-4">
           {Object.entries(groupedByDate).map(([date, options]) => (
             <div key={date}>
@@ -189,7 +189,7 @@ export default function VoteForm({ syncData, onSubmit, onCancel, showLocalTime, 
 
       {/* Bottom bar */}
       <div className="border-t pt-4 flex items-center justify-between">
-        <p className="text-xs text-gray-400">
+        <p className="text-xs text-gray-500">
           {selectedTimes.length === 0
             ? "Pick at least one slot"
             : `${selectedTimes.length} slot${selectedTimes.length > 1 ? "s" : ""} selected`}

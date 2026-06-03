@@ -18,13 +18,13 @@ export default function MostAvailableTimes({
 }: MostAvailableTimesProps) {
   // If no participants, return
   if (totalParticipants === 0) {
-    return <p className="bg-orange-100 text-orange-700 rounded-lg py-2 px-3 text-sm">No participants yet, share the link and invite people!</p>
+    return <p className="bg-secondary text-muted-foreground rounded-lg py-2 px-3 text-sm">No participants yet, share the link and invite people!</p>
   }
 
   // If no votes, return
   const totalVotes = timeOptions.reduce((sum, opt) => sum + opt.votes.length, 0);
   if (totalVotes === 0) {
-    return <p className="bg-orange-100 text-orange-700 rounded-lg py-2 px-3">No votes yet, share the link and invite people!</p>
+    return <p className="bg-secondary text-muted-foreground rounded-lg py-2 px-3">No votes yet, share the link and invite people!</p>
   }
 
   const sorted = [...timeOptions].sort((a, b) => b.votes.length - a.votes.length);
@@ -59,7 +59,7 @@ export default function MostAvailableTimes({
               <p className="text-sm font-medium text-gray-800">
                 {formatDate(option.startTime)} · {formatTime(option.startTime)} → {formatTime(option.endTime)}
               </p>
-              <p className="text-xs text-gray-400 mt-0.5 truncate">
+              <p className="text-xs text-gray-500 mt-0.5 truncate">
                 {getVoterNames(option)}
               </p>
               <div className="mt-2 h-1 bg-gray-100 rounded-full">
@@ -68,7 +68,7 @@ export default function MostAvailableTimes({
             </div>
             <div className="text-right shrink-0">
               <p className="text-sm font-semibold">{percentage}%</p>
-              <p className="text-xs text-gray-400">{voteCount}/{totalParticipants}</p>
+              <p className="text-xs text-gray-500">{voteCount}/{totalParticipants}</p>
             </div>
           </div>
         )
