@@ -3,7 +3,7 @@
 import { useCallback, useEffect, useState } from "react";
 import { useParams } from "next/navigation";
 import { toast } from "sonner";
-import { MdShare, MdEdit } from "react-icons/md";
+import { MdShare, MdEdit, MdKeyboardArrowUp, MdKeyboardArrowDown } from "react-icons/md";
 import MostAvailableTimes from "@/components/sync/MostAvailableTimes";
 import VoterDetails from "@/components/sync/VoterDetails";
 import LoadingSkeleton from "@/components/sync/LoadingSkeleton";
@@ -27,6 +27,7 @@ export default function SyncView() {
   const [showLocalTime, setShowLocalTime] = useState(false);
   const [voteError, setVoteError] = useState<string | null>(null);
   const [formKey, setFormKey] = useState(0);
+  const [isParticipantsExpanded, setIsParticipantsExpanded] = useState(true);
 
   const fetchSyncData = useCallback(async (opts?: { silent?: boolean }) => {
     const silent = opts?.silent ?? false;
@@ -135,10 +136,10 @@ export default function SyncView() {
   const bestMatch = [...(sync.timeOptions || [])].sort((a, b) => b.votes.length - a.votes.length)[0];
 
   return (
-    <main className="max-w-2xl mx-auto px-4 py-10">
+    <main className="max-w-6xl mx-auto px-4 sm:px-8 lg:px-16 py-10">
 
       {/* Top bar */}
-      <div className="flex items-center justify-between mb-6 text-sm text-gray-400">
+      <div className="flex items-center justify-between mb-6 text-sm text-gray-500">
         <div className="flex items-center gap-2">
           <span className={`text-xs font-medium px-2 py-0.5 rounded-full ${isExpired ? "bg-gray-100 text-gray-500" : "bg-green-100 text-green-700"}`}>
             {isExpired ? "Expired" : "Live"}
@@ -152,19 +153,21 @@ export default function SyncView() {
             }) : "—"}
           </span>
         </div>
-        <div className="flex items-center gap-3">
-          <button className="flex items-center gap-1 hover:text-gray-700">
-            <MdEdit /> Edit
-          </button>
-          <button className="flex items-center gap-1 hover:text-gray-700">
-            <MdShare /> Share
-          </button>
-        </div>
       </div>
 
       {/* Header */}
       <header className="mb-8">
-        <h1 className="text-4xl font-bold tracking-tight mb-2">{sync.title}</h1>
+        <div className="flex items-start justify-between mb-2">
+          <h1 className="text-4xl font-bold tracking-tight mb-2">{sync.title}</h1>
+          <div className="flex items-center gap-3 text-sm text-gray-500 shrink-0 ml-4 mt-1">
+            <button className="flex items-center gap-1 hover:text-gray-700">
+              <MdEdit /> Edit
+            </button>
+            <button className="flex items-center gap-1 hover:text-gray-700">
+              <MdShare /> Share
+            </button>
+          </div>
+        </div>
         {sync.description && (
           <p className="text-gray-500 mb-4">{sync.description}</p>
         )}
@@ -179,93 +182,106 @@ export default function SyncView() {
         </div>
       </header>
 
-      {bestMatch && (
-        <BestMatchCard 
-          timeOption={bestMatch}
-          totalParticipants={sync.participants?.length || 0}
-          participants={sync.participants || []}
-          timeZone={sync.timeZone}
-          showLocalTime={showLocalTime}
-        />
-      )}
 
-      {/* 01 All time options */}
-      <section className="mb-10">
-        <div className="flex items-baseline gap-3 mb-4">
-          <span className="text-xs text-gray-300 font-mono">01</span>
-          <h2 className="font-semibold">All time options</h2>
-          <span className="ml-auto text-xs text-gray-400">Ranked by vote</span>
+      {/* 2-column grid */}
+      <div className="grid grid-cols-1 lg:grid-cols-[3fr_2fr] lg:grid-rows-[auto_auto] gap-12 mt-12">
+
+        <div className="flex flex-col gap-12 lg:col-start-1 lg:row-start-1">
+          {bestMatch && (
+            <BestMatchCard
+              timeOption={bestMatch}
+              totalParticipants={sync.participants?.length || 0}
+              participants={sync.participants || []}
+              timeZone={sync.timeZone}
+              showLocalTime={showLocalTime}
+            />
+          )}
+
+          <section>
+            <div className="flex items-baseline gap-3 mb-4">
+              <span className="text-xs text-gray-300 font-mono">01</span>
+              <h2 className="font-semibold">All time options</h2>
+              <span className="ml-auto text-xs text-gray-500">Ranked by vote</span>
+            </div>
+            <MostAvailableTimes
+              timeOptions={sync.timeOptions || []}
+              totalParticipants={sync.participants?.length || 0}
+              participants={sync.participants || []}
+              timeZone={sync.timeZone}
+              showLocalTime={showLocalTime}
+            />
+          </section>
         </div>
-        <MostAvailableTimes
-          timeOptions={sync.timeOptions || []}
-          totalParticipants={sync.participants?.length || 0}
-          participants={sync.participants || []}
-          timeZone={sync.timeZone}
-          showLocalTime={showLocalTime}
-        />
-      </section>
 
-      {/* 02 Cast your vote */}
-      <section className="mb-10">
-        <div className="flex items-baseline gap-3 mb-4">
-          <span className="text-xs text-gray-300 font-mono">02</span>
-          <h2 className="font-semibold">Cast your vote</h2>
-          <span className="ml-auto text-xs text-gray-400">Select all times you're available</span>
+        <div className="lg:col-start-2 lg:row-start-1 lg:row-span-2 lg:sticky lg:top-10 lg:self-start lg:max-h-[calc(100vh-5rem)] lg:overflow-y-auto">
+          <section>
+            <div className="flex items-baseline gap-3 mb-4">
+              <span className="text-xs text-gray-300 font-mono">02</span>
+              <h2 className="font-semibold">Cast your vote</h2>
+              <span className="ml-auto text-xs text-gray-500">Select all times you're available</span>
+            </div>
+            <VoteForm
+              syncData={syncData}
+              showLocalTime={showLocalTime}
+              error={voteError}
+              formKey={formKey}
+              onSubmit={async (data) => {
+                setVoteError(null);
+                optimisticVoteSubmit(data);
+                const res = await submitVote(id, data);
+                if (!res.success) {
+                  setVoteError(res.error || "Invalid passcode");
+                  await fetchSyncData({ silent: true });
+                  return;
+                }
+                toast.success("Vote submitted successfully!");
+                setFormKey(prev => prev + 1);
+                await fetchSyncData({ silent: true });
+              }}
+              onCancel={async (participantName, passcode) => {
+                setVoteError(null);
+                voteCancel(participantName, passcode);
+                const res = await cancelVote(id, participantName, passcode);
+                if (!res.success) {
+                  setVoteError(res.error || "Invalid passcode");
+                  await fetchSyncData({ silent: true });
+                  return;
+                }
+                toast.success("Vote cancelled successfully");
+                setFormKey(prev => prev + 1);
+                await fetchSyncData({ silent: true });
+              }}
+            />
+          </section>
         </div>
-        <VoteForm
-          syncData={syncData}
-          showLocalTime={showLocalTime}
-          error={voteError}
-          formKey={formKey}
-          onSubmit={async (data) => {
-            setVoteError(null);
-            optimisticVoteSubmit(data);
 
-            const res = await submitVote(id, data);
-
-            if (!res.success) {
-              setVoteError(res.error || "Invalid passcode");
-              await fetchSyncData({ silent: true });
-              return;
-            }
-
-            toast.success("Vote submitted successfully!");
-            setFormKey(prev => prev + 1);
-            await fetchSyncData({ silent: true });
-          }}
-          onCancel={async (participantName, passcode) => {
-            setVoteError(null);
-            voteCancel(participantName, passcode);
-
-            const res = await cancelVote(id, participantName, passcode);
-
-            if (!res.success) {
-              setVoteError(res.error || "Invalid passcode");
-              await fetchSyncData({ silent: true });
-              return;
-            }
-
-            toast.success("Vote cancelled successfully");
-            setFormKey(prev => prev + 1);
-            await fetchSyncData({ silent: true });
-          }}
-        />
-      </section>
-
-      {/* 03 Participants */}
-      <section className="mb-10">
-        <div className="flex items-baseline gap-3 mb-4">
-          <span className="text-xs text-gray-300 font-mono">03</span>
-          <h2 className="font-semibold">
-            Participants <span className="text-gray-400 font-normal">({sync.participants?.length || 0})</span>
-          </h2>
-        </div>
-        <VoterDetails
-          syncData={syncData}
-          timeZone={sync.timeZone}
-          showLocalTime={showLocalTime}
-        />
-      </section>
-    </main>
+        <section className="lg:col-start-1 lg:row-start-2">
+          <button
+            onClick={() => setIsParticipantsExpanded((prev) => !prev)}
+            className="w-full flex items-center gap-3 mb-4 text-left"
+          >
+            <span className="text-xs text-gray-300 font-mono">03</span>
+            <h2 className="font-semibold">
+              Participants{" "}
+              <span className="text-gray-500 font-normal">
+                ({sync.participants?.length || 0})
+              </span>
+            </h2>
+            {isParticipantsExpanded ? (
+              <MdKeyboardArrowUp className="ml-auto text-gray-400" />
+            ) : (
+              <MdKeyboardArrowDown className="ml-auto text-gray-400" />
+            )}
+          </button>
+          {isParticipantsExpanded && (
+            <VoterDetails
+              syncData={syncData}
+              timeZone={sync.timeZone}
+              showLocalTime={showLocalTime}
+            />
+          )}
+        </section>
+      </div>
+    </main >
   );
 }
