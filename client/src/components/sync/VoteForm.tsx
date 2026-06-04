@@ -128,7 +128,7 @@ export default function VoteForm({ syncData, onSubmit, onCancel, showLocalTime, 
               value={name}
               onChange={handleNameChange}
               required
-              className="pl-9"
+              className="pl-9 bg-white"
             />
           </div>
           <div className="relative flex items-center">
@@ -138,11 +138,11 @@ export default function VoteForm({ syncData, onSubmit, onCancel, showLocalTime, 
               inputMode="numeric"
               pattern="[0-9]*"
               maxLength={4}
-              placeholder="4-digit passcode (to edit later)"
+              placeholder="4-digit passcode"
               value={passcode}
               onChange={handlePasscodeChange}
               required
-              className={`pl-9 ${displayError ? "border-red-400" : ""}`}
+              className={`pl-9 bg-white ${displayError ? "border-red-400" : ""}`}
             />
           </div>
         </div>
@@ -163,7 +163,7 @@ export default function VoteForm({ syncData, onSubmit, onCancel, showLocalTime, 
         <div className="space-y-4">
           {Object.entries(groupedByDate).map(([date, options]) => (
             <div key={date}>
-              <p className="text-sm font-medium text-gray-700 mb-2">{date}</p>
+              <p className="text-sm font-semibold text-gray-900 mb-2">{date}</p>
               <div className="flex flex-wrap gap-2">
                 {options.map(option => {
                   const isSelected = selectedTimes.includes(option.id);
@@ -175,7 +175,10 @@ export default function VoteForm({ syncData, onSubmit, onCancel, showLocalTime, 
                       key={option.id}
                       type="button"
                       onClick={() => toggleTimeOption(option.id)}
-                      className={`px-3 py-1.5 rounded-full text-sm transition-colors ${isSelected ? "bg-primary text-white" : "bg-gray-100 text-gray-700 hover:bg-gray-200"}`}
+                      className={`px-3 py-1.5 rounded-full text-sm transition-colors border ${
+                        isSelected
+                          ? "bg-indigo-950 text-white border-indigo-950" 
+                          : "bg-white text-indigo-950 border-violet-200 hover:bg-violet-100"}`}
                     >
                       {timeLabel}
                     </button>

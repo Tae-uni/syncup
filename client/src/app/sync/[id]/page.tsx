@@ -171,7 +171,7 @@ export default function SyncView() {
         {sync.description && (
           <p className="text-gray-500 mb-4">{sync.description}</p>
         )}
-        <div className="flex flex-wrap items-center gap-4 text-sm text-gray-500">
+        <div className="flex flex-wrap items-center gap-4 text-sm text-indigo-950">
           <span>{sync.timeZone}</span>
           <span>{sync.participants?.length || 0} participants</span>
           <span>{sync.timeOptions?.length || 0} dates</span>
@@ -199,7 +199,7 @@ export default function SyncView() {
 
           <section>
             <div className="flex items-baseline gap-3 mb-4">
-              <span className="text-xs text-gray-300 font-mono">01</span>
+              <span className="text-xs text-indigo-600 font-mono">01</span>
               <h2 className="font-semibold">All time options</h2>
               <span className="ml-auto text-xs text-gray-500">Ranked by vote</span>
             </div>
@@ -216,7 +216,7 @@ export default function SyncView() {
         <div className="lg:col-start-2 lg:row-start-1 lg:row-span-2 lg:sticky lg:top-10 lg:self-start lg:max-h-[calc(100vh-5rem)] lg:overflow-y-auto">
           <section>
             <div className="flex items-baseline gap-3 mb-4">
-              <span className="text-xs text-gray-300 font-mono">02</span>
+              <span className="text-xs text-indigo-600 font-mono">02</span>
               <h2 className="font-semibold">Cast your vote</h2>
               <span className="ml-auto text-xs text-gray-500">Select all times you're available</span>
             </div>
@@ -260,7 +260,7 @@ export default function SyncView() {
             onClick={() => setIsParticipantsExpanded((prev) => !prev)}
             className="w-full flex items-center gap-3 mb-4 text-left"
           >
-            <span className="text-xs text-gray-300 font-mono">03</span>
+            <span className="text-xs text-indigo-600 font-mono">03</span>
             <h2 className="font-semibold">
               Participants{" "}
               <span className="text-gray-500 font-normal">

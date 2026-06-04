@@ -53,7 +53,7 @@ export default function VoterDetails({
       {participantVotes.map((participant) => (
         <div
           key={participant.id}
-          className="rounded-xl border border-gray-200 bg-white p-5"
+          className="rounded-xl border border-gray-300 bg-white p-5"
         >
           <div className="flex items-start justify-between mb-4">
             <div className="flex items-center gap-2">
@@ -79,7 +79,7 @@ export default function VoterDetails({
               {participant.chips.map((chip, i) => (
                 <span
                   key={i}
-                  className="text-xs bg-gray-100 text-gray-600 rounded-md px-2 py-1"
+                  className="text-xs bg-violet-100 text-indigo-950 rounded-md px-2 py-1"
                 >
                   {chip}
                 </span>

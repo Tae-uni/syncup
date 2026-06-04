@@ -29,19 +29,19 @@ export default function BestMatchCard({
 
   return (
     <div className="bg-slate-800 text-white rounded-xl p-6">
-      <p className="text-xs text-gray-400 uppercase tracking-widest mb-4">
+      <p className="text-xs text-violet-200 uppercase tracking-widest mb-4">
         Best Match
       </p>
       <div className="flex items-start justify-between mb-4">
         <div>
           <p className="text-2xl font-bold mb-1">{formattedDate}</p>
-          <p className="text-sm text-gray-400">{timeRange}</p>
+          <p className="text-sm text-violet-200">{timeRange}</p>
         </div>
         <div className="text-right">
           <p className="text-4xl font-bold leading-none">
-            {percentage}<span className="text-lg font-normal text-gray-400">%</span>
+            {percentage}<span className="text-lg font-normal text-violet-200">%</span>
           </p>
-          <p className="text-xs text-gray-400 uppercase tracking-wide mt-1">
+          <p className="text-xs text-violet-200 uppercase tracking-wide mt-1">
             {voteCount}/{totalParticipants} Available
           </p>
         </div>

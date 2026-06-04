@@ -56,7 +56,7 @@ export default function MostAvailableTimes({
               #{String(index + 1).padStart(2, "0")}
             </span>
             <div className="flex-1 min-w-0">
-              <p className="text-sm font-medium text-gray-800">
+              <p className="text-sm font-medium text-gray-900">
                 {formatDate(option.startTime)} · {formatTime(option.startTime)} → {formatTime(option.endTime)}
               </p>
               <p className="text-xs text-gray-500 mt-0.5 truncate">
