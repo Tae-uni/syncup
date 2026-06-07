@@ -2,6 +2,7 @@
 
 import { useCallback, useEffect, useState } from "react";
 import { useParams } from "next/navigation";
+import Link from "next/link";
 import { toast } from "sonner";
 import { MdShare, MdEdit, MdKeyboardArrowUp, MdKeyboardArrowDown } from "react-icons/md";
 import MostAvailableTimes from "@/components/sync/MostAvailableTimes";
@@ -160,10 +161,27 @@ export default function SyncView() {
         <div className="flex items-start justify-between mb-2">
           <h1 className="text-4xl font-bold tracking-tight mb-2">{sync.title}</h1>
           <div className="flex items-center gap-3 text-sm text-gray-500 shrink-0 ml-4 mt-1">
-            <button className="flex items-center gap-1 hover:text-gray-700">
+            <Link href={`/sync/${id}/edit`} className="flex items-center gap-1 hover:text-gray-700">
               <MdEdit /> Edit
-            </button>
-            <button className="flex items-center gap-1 hover:text-gray-700">
+            </Link>
+            <button
+              className="flex items-center gap-1 hover:text-gray-700"
+              onClick={async () => {
+                if (navigator.share) {
+                  try {
+                    await navigator.share({
+                      title: sync.title,
+                      url: window.location.href,
+                    });
+                  } catch {
+                    // user dismissed the share sheet
+                  }
+                } else {
+                  navigator.clipboard.writeText(window.location.href);
+                  toast.success("Link copied!");
+                }
+              }}
+            >
               <MdShare /> Share
             </button>
           </div>
