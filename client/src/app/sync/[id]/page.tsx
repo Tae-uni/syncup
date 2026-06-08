@@ -2,16 +2,16 @@
 
 import { useCallback, useEffect, useState } from "react";
 import { useParams } from "next/navigation";
+import Link from "next/link";
 import { toast } from "sonner";
-import { RiTimeLine } from "react-icons/ri";
-import { MdAccessTime, MdHowToVote, MdOutlineCalendarMonth, MdPeopleAlt, MdShare, MdTimer } from "react-icons/md";
-import { Card, CardContent } from "@/components/ui/card";
+import { MdShare, MdEdit, MdKeyboardArrowUp, MdKeyboardArrowDown } from "react-icons/md";
 import MostAvailableTimes from "@/components/sync/MostAvailableTimes";
 import VoterDetails from "@/components/sync/VoterDetails";
 import LoadingSkeleton from "@/components/sync/LoadingSkeleton";
 import SyncExpiredDisplay from "@/components/sync/SyncExpiredDisplay";
 import ErrorDisplay from "@/components/sync/ErrorDisplay";
 import VoteForm from "@/components/sync/VoteForm";
+import BestMatchCard from "@/components/sync/BestMatchCard";
 
 import { GetSyncPayload, VoteSubmitData } from "@/types/sync";
 import { getSync, submitVote, cancelVote } from "../syncApi";
@@ -28,6 +28,7 @@ export default function SyncView() {
   const [showLocalTime, setShowLocalTime] = useState(false);
   const [voteError, setVoteError] = useState<string | null>(null);
   const [formKey, setFormKey] = useState(0);
+  const [isParticipantsExpanded, setIsParticipantsExpanded] = useState(true);
 
   const fetchSyncData = useCallback(async (opts?: { silent?: boolean }) => {
     const silent = opts?.silent ?? false;
@@ -132,64 +133,111 @@ export default function SyncView() {
   }
 
   const { sync } = syncData;
+  const isExpired = sync.expiresAt ? new Date(sync.expiresAt) < new Date() : false;
+  const bestMatch = [...(sync.timeOptions || [])].sort((a, b) => b.votes.length - a.votes.length)[0];
 
   return (
-    <main className="max-w-4xl mx-auto mt-8">
-      <Card className="overflow-hidden shadow-xl">
-        <div className="bg-gradient-to-br from-orange-400 to-teal-400 p-6 pb-4 relative">
-          <header>
-            <h1 className="text-2xl font-bold text-white mb-1">{sync.title}</h1>
-            {sync.description && (
-              <p className="text-white/90 text-base mb-3">{sync.description}</p>
-            )}
-            <div className="flex flex-wrap items-center gap-3 text-white/80 text-base">
-              <span><RiTimeLine className="inline mr-1" />{sync.timeZone}</span>
-              <span><MdPeopleAlt className="inline mr-1" />{sync.participants?.length || 0} Participants</span>
-              <span><MdTimer className="inline mr-1" />Expires: {sync.expiresAt ? new Date(sync.expiresAt).toLocaleDateString() : 'No expiration'}</span>
-              <div className="flex items-center gap-2">
-                <MdAccessTime className="text-gray-500" />
-                <div className="flex items-center gap-2">
-                  <span className="text-sm text-gray-600">Show local time</span>
-                  <Switch
-                    checked={showLocalTime}
-                    onCheckedChange={setShowLocalTime}
-                    className="data-[state=checked]:bg-teal-500"
-                  />
-                </div>
-              </div>
-              <button className="ml-auto"><MdShare className="inline" /></button>
-            </div>
-          </header>
+    <main className="max-w-6xl mx-auto px-4 sm:px-8 lg:px-16 py-10">
+
+      {/* Top bar */}
+      <div className="flex items-center justify-between mb-6 text-sm text-gray-500">
+        <div className="flex items-center gap-2">
+          <span className={`text-xs font-medium px-2 py-0.5 rounded-full ${isExpired ? "bg-gray-100 text-gray-500" : "bg-green-100 text-green-700"}`}>
+            {isExpired ? "Expired" : "Live"}
+          </span>
+          <span>·</span>
+          <span>{sync.participants?.length || 0} voted</span>
+          <span>·</span>
+          <span className="text-xs uppercase tracking-wide">
+            EXPIRES {sync.expiresAt ? new Date(sync.expiresAt).toLocaleDateString("en-US", {
+              month: "short", day: "numeric"
+            }) : "—"}
+          </span>
         </div>
-        {/* Components*/}
-        <CardContent className="bg-white p-6 space-y-8">
-          {/* Most Available Time */}
+      </div>
+
+      {/* Header */}
+      <header className="mb-8">
+        <div className="flex items-start justify-between mb-2">
+          <h1 className="text-4xl font-bold tracking-tight mb-2">{sync.title}</h1>
+          <div className="flex items-center gap-3 text-sm text-gray-500 shrink-0 ml-4 mt-1">
+            <Link href={`/sync/${id}/edit`} className="flex items-center gap-1 hover:text-gray-700">
+              <MdEdit /> Edit
+            </Link>
+            <button
+              className="flex items-center gap-1 hover:text-gray-700"
+              onClick={async () => {
+                if (navigator.share) {
+                  try {
+                    await navigator.share({
+                      title: sync.title,
+                      url: window.location.href,
+                    });
+                  } catch {
+                    // user dismissed the share sheet
+                  }
+                } else {
+                  navigator.clipboard.writeText(window.location.href);
+                  toast.success("Link copied!");
+                }
+              }}
+            >
+              <MdShare /> Share
+            </button>
+          </div>
+        </div>
+        {sync.description && (
+          <p className="text-gray-500 mb-4">{sync.description}</p>
+        )}
+        <div className="flex flex-wrap items-center gap-4 text-sm text-indigo-950">
+          <span>{sync.timeZone}</span>
+          <span>{sync.participants?.length || 0} participants</span>
+          <span>{sync.timeOptions?.length || 0} dates</span>
+          <div className="flex items-center gap-2 ml-auto">
+            <span className="text-xs">Show in my time</span>
+            <Switch checked={showLocalTime} onCheckedChange={setShowLocalTime} />
+          </div>
+        </div>
+      </header>
+
+
+      {/* 2-column grid */}
+      <div className="grid grid-cols-1 lg:grid-cols-[3fr_2fr] lg:grid-rows-[auto_auto] gap-12 mt-12">
+
+        <div className="flex flex-col gap-12 lg:col-start-1 lg:row-start-1">
+          {bestMatch && (
+            <BestMatchCard
+              timeOption={bestMatch}
+              totalParticipants={sync.participants?.length || 0}
+              participants={sync.participants || []}
+              timeZone={sync.timeZone}
+              showLocalTime={showLocalTime}
+            />
+          )}
+
           <section>
-            <h2 className="flex gap-2 items-center text-xl font-semibold mb-2">
-              <MdOutlineCalendarMonth className="text-xl" />
-              Most Available Time
-            </h2>
+            <div className="flex items-baseline gap-3 mb-4">
+              <span className="text-xs text-indigo-600 font-mono">01</span>
+              <h2 className="font-semibold">All time options</h2>
+              <span className="ml-auto text-xs text-gray-500">Ranked by vote</span>
+            </div>
             <MostAvailableTimes
               timeOptions={sync.timeOptions || []}
               totalParticipants={sync.participants?.length || 0}
+              participants={sync.participants || []}
               timeZone={sync.timeZone}
               showLocalTime={showLocalTime}
-              limit={2}
             />
           </section>
-          {/* Availability Heatmap or Grid */}
-          {/* <section>
-            <h2 className="text-base font-semibold mb-2 text-gray-700">Availability</h2>
-          </section> */}
+        </div>
 
-          {/* Vote Form */}
+        <div className="lg:col-start-2 lg:row-start-1 lg:row-span-2 lg:sticky lg:top-10 lg:self-start lg:max-h-[calc(100vh-5rem)] lg:overflow-y-auto">
           <section>
-            <h2 className="flex gap-2 items-center text-xl font-semibold mb-4">
-              <MdHowToVote className="text-xl" />
-              Vote Your Availability
-            </h2>
-            {/* <p className="text-sm text-gray-500 italic">Please select all times that work for you</p>
-            <hr className="mt-2 mb-4" /> */}
+            <div className="flex items-baseline gap-3 mb-4">
+              <span className="text-xs text-indigo-600 font-mono">02</span>
+              <h2 className="font-semibold">Cast your vote</h2>
+              <span className="ml-auto text-xs text-gray-500">Select all times you're available</span>
+            </div>
             <VoteForm
               syncData={syncData}
               showLocalTime={showLocalTime}
@@ -198,15 +246,12 @@ export default function SyncView() {
               onSubmit={async (data) => {
                 setVoteError(null);
                 optimisticVoteSubmit(data);
-
                 const res = await submitVote(id, data);
-
                 if (!res.success) {
                   setVoteError(res.error || "Invalid passcode");
                   await fetchSyncData({ silent: true });
                   return;
                 }
-
                 toast.success("Vote submitted successfully!");
                 setFormKey(prev => prev + 1);
                 await fetchSyncData({ silent: true });
@@ -214,36 +259,47 @@ export default function SyncView() {
               onCancel={async (participantName, passcode) => {
                 setVoteError(null);
                 voteCancel(participantName, passcode);
-
                 const res = await cancelVote(id, participantName, passcode);
-
                 if (!res.success) {
                   setVoteError(res.error || "Invalid passcode");
                   await fetchSyncData({ silent: true });
                   return;
                 }
-
                 toast.success("Vote cancelled successfully");
                 setFormKey(prev => prev + 1);
                 await fetchSyncData({ silent: true });
               }}
             />
           </section>
+        </div>
 
-          {/* Voter Details */}
-          <section>
-            {/* <h2 className="flex gap-2 items-center text-xl font-semibold mb-2 text-gray-700">
-              <MdGroup className="text-2xl" />
-              Voter Details
-            </h2> */}
+        <section className="lg:col-start-1 lg:row-start-2">
+          <button
+            onClick={() => setIsParticipantsExpanded((prev) => !prev)}
+            className="w-full flex items-center gap-3 mb-4 text-left"
+          >
+            <span className="text-xs text-indigo-600 font-mono">03</span>
+            <h2 className="font-semibold">
+              Participants{" "}
+              <span className="text-gray-500 font-normal">
+                ({sync.participants?.length || 0})
+              </span>
+            </h2>
+            {isParticipantsExpanded ? (
+              <MdKeyboardArrowUp className="ml-auto text-gray-400" />
+            ) : (
+              <MdKeyboardArrowDown className="ml-auto text-gray-400" />
+            )}
+          </button>
+          {isParticipantsExpanded && (
             <VoterDetails
               syncData={syncData}
               timeZone={sync.timeZone}
               showLocalTime={showLocalTime}
             />
-          </section>
-        </CardContent>
-      </Card>
-    </main>
+          )}
+        </section>
+      </div>
+    </main >
   );
 }

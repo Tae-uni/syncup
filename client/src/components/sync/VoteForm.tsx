@@ -2,15 +2,13 @@
 
 import { useState, useEffect } from "react";
 import { DateTime } from "luxon";
-import { MdCancel, MdCheck, MdEdit } from "react-icons/md";
+import { MdCancel, MdCheck, MdEdit, MdPerson, MdLock } from "react-icons/md";
 
 import { GetSyncPayload, VoteSubmitData } from "@/types/sync";
 import { formatTimeInSelectedTimeZone, formatTimeInUserLocalTimeZone, getUserTimeZone } from "@/lib/timezoneConvert";
 
 import { Button } from "@/components/ui/button";
-import { Checkbox } from "@/components/ui/checkbox";
 import { Input } from "@/components/ui/input";
-import { Label } from "@/components/ui/label";
 import {
   Dialog,
   DialogContent,
@@ -89,7 +87,7 @@ export default function VoteForm({ syncData, onSubmit, onCancel, showLocalTime, 
       setLocalError("Please select at least one time option");
       return;
     }
-    
+
     onSubmit({
       participantName: name,
       timeOptionIds: selectedTimes,
@@ -120,122 +118,71 @@ export default function VoteForm({ syncData, onSubmit, onCancel, showLocalTime, 
   }, {} as Record<string, typeof sync.timeOptions>);
 
   return (
-    <form onSubmit={handleSubmit} className="space-y-8">
-      {isUpdate && (
-        <div className="p-3 bg-teal-50 text-teal-700 rounded-md mb-4 flex items-center">
-          <MdEdit className="mr-2 flex-shrink-0" />
-          <p className="text-sm">
-            You've already voted as <strong>{name}</strong>. You can update or cancel your vote below.
+    <form onSubmit={handleSubmit} className="space-y-6">
+      <div className="p-0.5">
+        <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
+          <div className="relative flex items-center">
+            <MdPerson className="absolute left-3 text-gray-400" />
+            <Input
+              placeholder="Your name"
+              value={name}
+              onChange={handleNameChange}
+              required
+              className="pl-9 bg-white"
+            />
+          </div>
+          <div className="relative flex items-center">
+            <MdLock className="absolute left-3 text-gray-400" />
+            <Input
+              type="password"
+              inputMode="numeric"
+              pattern="[0-9]*"
+              maxLength={4}
+              placeholder="4-digit passcode"
+              value={passcode}
+              onChange={handlePasscodeChange}
+              required
+              className={`pl-9 bg-white ${displayError ? "border-red-400" : ""}`}
+            />
+          </div>
+        </div>
+        {displayError && (
+          <p className="text-xs text-red-500 mt-2">{displayError}</p>
+        )}
+        {isUpdate && !displayError && (
+          <p className="text-xs text-primary mt-2 flex items-center gap-1">
+            <MdEdit className="text-sm" />
+            Updating vote for <strong>{name}</strong> - enter passcode to confirm
           </p>
-        </div>
-      )}
-
-      {/* Name and Passcode Inputs */}
-      <div className="space-y-2 max-w-md">
-        <div className="relative">
-          <Input
-            id="name"
-            placeholder=" "
-            value={name}
-            onChange={handleNameChange}
-            required
-            className={`peer h-10 w-full rounded-md border px-3 pt-5 pb-2 focus:ring-2 focus:ring-teal-400 ${
-              isUpdate ? 'border-teal-400 bg-teal-50' : ''
-            }`}
-          />
-          <Label 
-            htmlFor="name"
-            className="absolute left-3 top-1 text-xs text-gray-500 transition-all peer-placeholder-shown:top-2 peer-placeholder-shown:text-base peer-focus:top-1 peer-focus:text-xs"
-          >
-            Enter your name
-          </Label>
-        </div>
-
-        <div className="relative">
-          <Input
-            id="passcode"
-            type="password"
-            inputMode="numeric"
-            pattern="[0-9]*"
-            maxLength={4}
-            placeholder=" "
-            value={passcode}
-            onChange={handlePasscodeChange}
-            required
-            className={`peer h-10 w-full rounded-md border px-3 pt-5 pb-2 focus:ring-2 focus:ring-teal-400 ${
-              displayError ? 'border-red-400' : ''
-            }`}
-          />
-          <Label
-            htmlFor="passcode"
-            className="absolute left-3 top-1 text-xs text-gray-500 transition-all peer-placeholder-shown:top-2 peer-placeholder-shown:text-base peer-focus:top-1 peer-focus:text-xs"
-          >
-            {isUpdate ? 'Enter your passcode' : 'Create a 4-digit passcode'}
-          </Label>
-          {displayError ? (
-            <p className="text-xs text-red-500 mt-1">{displayError}</p>
-          ) : (
-            <p className="text-xs text-gray-500 mt-1">
-              {isUpdate
-                ? 'Enter your passcode to update your vote'
-                : 'Remember this code to edit your vote later'}
-            </p>
-          )}
-        </div>
+        )}
       </div>
 
       {/* Time Options */}
-      <div className="space-y-4">
-        <div className="flex justify-between items-center mb-2">
-          <h3 className="text-sm font-semibold text-gray-700">Select Available Times</h3>
-        </div>
+      <div>
+        <p className="text-xs text-gray-500 uppercase tracking-widest mb-3">Available Times</p>
         <div className="space-y-4">
           {Object.entries(groupedByDate).map(([date, options]) => (
-            <div key={date} className="border rounded-lg p-3 bg-gray-50 mb-4">
-              <div className="font-medium text-gray-800 mb-2">
-                {date}
-                {showLocalTime && (
-                  <span className="text-sm text-gray-500 ml-2">
-                    (shown in your local time)
-                  </span>
-                )}
-              </div>
-              <div className="flex flex-wrap gap-4">
+            <div key={date}>
+              <p className="text-sm font-semibold text-gray-900 mb-2">{date}</p>
+              <div className="flex flex-wrap gap-2">
                 {options.map(option => {
-                  console.log('Time option', {
-                    date: option.date,
-                    startTime: option.startTime,
-                    endTime: option.endTime,
-                    timeZone: sync.timeZone,
-                    showLocalTime: showLocalTime,
-                  })
-
+                  const isSelected = selectedTimes.includes(option.id);
+                  const timeLabel = showLocalTime
+                    ? formatTimeInUserLocalTimeZone(option.date, option.startTime, option.endTime, sync.timeZone)
+                    : formatTimeInSelectedTimeZone(option.date, option.startTime, option.endTime, sync.timeZone);
                   return (
-                    <label key={option.id} className="flex items-center gap-2 text-sm">
-                      <Checkbox
-                        id={option.id}
-                        checked={selectedTimes.includes(option.id)}
-                        onCheckedChange={() => toggleTimeOption(option.id)}
-                      />
-                      {showLocalTime ? (
-                        // User local timezone
-                        formatTimeInUserLocalTimeZone(
-                          option.date,
-                          option.startTime,
-                          option.endTime,
-                          sync.timeZone
-                        )
-                      ) : (
-                        // Host timezone
-                        formatTimeInSelectedTimeZone(
-                          option.date,
-                          option.startTime,
-                          option.endTime,
-                          sync.timeZone
-                        )
-                      )}
-                    </label>
-                  )
+                    <button
+                      key={option.id}
+                      type="button"
+                      onClick={() => toggleTimeOption(option.id)}
+                      className={`px-3 py-1.5 rounded-full text-sm transition-colors border ${
+                        isSelected
+                          ? "bg-indigo-950 text-white border-indigo-950" 
+                          : "bg-white text-indigo-950 border-violet-200 hover:bg-violet-100"}`}
+                    >
+                      {timeLabel}
+                    </button>
+                  );
                 })}
               </div>
             </div>
@@ -243,16 +190,14 @@ export default function VoteForm({ syncData, onSubmit, onCancel, showLocalTime, 
         </div>
       </div>
 
-      {/* Submit Button */}
-      <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-3 pt-4">
-        <p className="text-sm text-gray-500">
-          {selectedTimes.length === 0 ? (
-            "Please select at least one time option"
-          ) : (
-            `${selectedTimes.length} time option${selectedTimes.length > 1 ? 's' : ''} selected`
-          )}
+      {/* Bottom bar */}
+      <div className="border-t pt-4 flex items-center justify-between">
+        <p className="text-xs text-gray-500">
+          {selectedTimes.length === 0
+            ? "Pick at least one slot"
+            : `${selectedTimes.length} slot${selectedTimes.length > 1 ? "s" : ""} selected`}
         </p>
-        <div className="flex gap-2 w-full sm:w-auto">
+        <div className="flex gap-2">
           {isUpdate && (
             <Button
               type="button"
@@ -263,7 +208,7 @@ export default function VoteForm({ syncData, onSubmit, onCancel, showLocalTime, 
                   setLocalError("Please enter your passcode to cancel");
                 }
               }}
-              className="flex-1 sm:flex-none px-2 py-5 rounded-lg font-semibold bg-orange-400 text-white hover:opacity-90 shadow-md hover:shadow-lg"
+              className="bg-orange-400 text-white hover:opacity-90"
               disabled={!name || passcode.length !== 4}
             >
               <MdCancel className="mr-1" />
@@ -272,14 +217,14 @@ export default function VoteForm({ syncData, onSubmit, onCancel, showLocalTime, 
           )}
           <Button
             type="submit"
-            className={`flex-1 sm:flex-none px-2 py-5 rounded-lg font-semibold transition-all ${!name || selectedTimes.length === 0
-              ? 'bg-gray-300 text-gray-500 cursor-not-allowed'
-              : 'bg-teal-500 text-white hover:opacity-90 shadow-md hover:shadow-lg'
-              }`}
             disabled={!name || selectedTimes.length === 0}
+            className={`${!name || selectedTimes.length === 0
+                ? "bg-gray-300 text-gray-500 cursor-not-allowed"
+                : "bg-primary text-white hover:opacity-90"
+              }`}
           >
             <MdCheck className="mr-1" />
-            {isUpdate ? "Update Vote" : "Submit Vote"}
+            {isUpdate ? "Update Vote" : "Submit vote"}
           </Button>
         </div>
       </div>
@@ -290,7 +235,8 @@ export default function VoteForm({ syncData, onSubmit, onCancel, showLocalTime, 
           <DialogHeader>
             <DialogTitle>Cancel Your Vote?</DialogTitle>
             <DialogDescription>
-              This will remove all your vote selections and your participation from this sync. You can vote again later with a new passcode.
+              This will remove all your vote selections and your participation
+              from this sync. You can vote again later with a new passcode.
             </DialogDescription>
           </DialogHeader>
           <DialogFooter className="gap-2 sm:gap-0">
