@@ -82,6 +82,28 @@ export const getSyncById = async (id: string) => {
 export const updateSync = async (syncId: string, data: SyncUpdateInput) => {
   await verifyLeaderPasscode(syncId, data.leaderPasscode);
 
+  const existing = await prisma.timeOption.findMany({
+    where: { syncId },
+    select: { id: true, startTime: true, endTime: true },
+  });
+
+  const incomingKeys = new Set(
+    data.timeSelector.map((t) => `${t.startTime}|${t.endTime}`)
+  );
+
+  const existingKeys = new Set(
+    existing.map((e) =>
+      `${e.startTime.toISOString()}|${e.endTime.toISOString()}`)
+  );
+
+  const idsToDelete = existing
+    .filter((e) => !incomingKeys.has(`${e.startTime.toISOString()}|${e.endTime.toISOString()}`))
+    .map((e) => e.id);
+
+  const optionsToCreate = data.timeSelector.filter(
+    (t) => !existingKeys.has(`${t.startTime}|${t.endTime}`)
+  );
+
   const updated = await prisma.sync.update({
     where: { id: syncId },
     data: {
@@ -89,8 +111,8 @@ export const updateSync = async (syncId: string, data: SyncUpdateInput) => {
       description: data.description,
       timeZone: data.timeZone,
       timeOptions: {
-        deleteMany: {},
-        create: data.timeSelector.map((time) => ({
+        deleteMany: { id: { in: idsToDelete } },
+        create: optionsToCreate.map((time) => ({
           date: new Date(time.date),
           startTime: new Date(time.startTime),
           endTime: new Date(time.endTime),
