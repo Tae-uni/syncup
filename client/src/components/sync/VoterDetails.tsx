@@ -86,7 +86,12 @@ export default function VoterDetails({
               ))}
             </div>
           ) : (
-            <p className="text-xs text-gray-500 italic">No picks yet</p>
+            <div className="flex flex-col gap-2">
+              <span className="inline-flex w-fit text-xs font-medium bg-amber-100 text-amber-700 rounded-md px-2 py-1">
+                Re-vote needed
+              </span>
+              <p className="text-xs text-gray-500 italic">No picks yet</p>
+            </div>
           )}
         </div>
       ))}
