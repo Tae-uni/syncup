@@ -31,7 +31,7 @@ export default function CalendarPicker({
       selected={selected}
       onSelect={handleSelect}
       disabled={{ before: new Date() }}
-      className="rounded-xl border border-border w-full p-4"
+      className="rounded-xl border border-gray-300 bg-white shadow-sm w-full p-4"
       classNames={{
         head_cell: "text-muted-foreground rounded-md w-10 font-normal text-[0.8rem] text-center",
         row: "flex w-full mt-0.5",

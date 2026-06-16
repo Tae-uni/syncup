@@ -121,7 +121,7 @@ export default function TimeSelector({ selectedDates, onChange, initialSlots }: 
                       onChange={(e) =>
                         updateTimeSlot(date, index, 'start', e.target.value)
                       }
-                      className="h-8 w-[130px] rounded-md border border-input bg-background px-2.5 text-xs text-foreground focus-visible:outline-none focus-visible:ring-1 focus-visible:ring-ring"
+                      className="h-8 w-[130px] rounded-md border border-input bg-white px-2.5 text-xs text-foreground focus-visible:outline-none focus-visible:ring-1 focus-visible:ring-ring"
                     />
                     <span className="text-xs text-muted-foreground">→</span>
                     <input
@@ -130,7 +130,7 @@ export default function TimeSelector({ selectedDates, onChange, initialSlots }: 
                       onChange={(e) =>
                         updateTimeSlot(date, index, 'end', e.target.value)
                       }
-                      className="h-8 w-[130px] rounded-md border border-input bg-background px-2.5 text-xs text-foreground focus-visible:outline-none focus-visible:ring-1 focus-visible:ring-ring"
+                      className="h-8 w-[130px] rounded-md border border-input bg-white px-2.5 text-xs text-foreground focus-visible:outline-none focus-visible:ring-1 focus-visible:ring-ring"
                     />
                     <button
                       type="button"

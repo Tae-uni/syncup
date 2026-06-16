@@ -160,7 +160,7 @@ export default function Sync() {
               }
             />
           </div>
-          <div className="flex items-center gap-1.5 shrink-0 px-2.5 py-1 rounded-full border border-border bg-background text-xs text-muted-foreground">
+          <div className="flex items-center gap-1.5 shrink-0 px-2.5 py-1 rounded-full border border-border bg-white text-xs text-muted-foreground">
             <Globe className="w-3.5 h-3.5 shrink-0" />
             <TimeZoneSelector value={timeZone} onChange={setTimeZone} className="border-0 shadow-none h-auto py-0 text-xs font-normal bg-transparent hover:bg-transparent" />
           </div>
@@ -214,12 +214,13 @@ export default function Sync() {
                     setLeaderPasscode(val);
                   }}
                   maxLength={4}
+                  className="bg-white"
                 />
               </div>
               <div className="flex flex-col gap-1.5 w-full sm:w-44">
                 <Label className="text-sm">Expiration</Label>
                 <Select value={expiresInDays} onValueChange={setExpiresInDays}>
-                  <SelectTrigger>
+                  <SelectTrigger className="bg-white">
                     <SelectValue placeholder="Default (3 days)" />
                   </SelectTrigger>
                   <SelectContent>
@@ -235,7 +236,7 @@ export default function Sync() {
 
             <div className="flex justify-end gap-3">
               <Link href="/">
-                <Button variant="outline">Cancel</Button>
+                <Button variant="outline" className="border-gray-300 bg-white">Cancel</Button>
               </Link>
               <Button onClick={handleSubmit} disabled={isSubmitting}>
                 {isSubmitting ? "Creating..." : "Create Sync"}
