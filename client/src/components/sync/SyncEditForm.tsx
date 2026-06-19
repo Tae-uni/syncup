@@ -2,6 +2,9 @@
 
 import { useState, useEffect } from "react";
 import { useRouter } from "next/navigation";
+import Link from "next/link";
+import { MdArrowBack } from "react-icons/md";
+import { Globe, Calendar1, Clock } from "lucide-react";
 import { toast } from "sonner";
 
 import { Input } from "@/components/ui/input";
@@ -32,6 +35,7 @@ export default function SyncEditForm({ syncId, passcode }: Props) {
   const [selectedDates, setSelectedDates] = useState<Date[]>([]);
   const [initialSlots, setInitialSlots] = useState<Record<string, Array<{ start: string; end: string }>>>({});
   const [timesData, setTimesData] = useState<{ date: Date; start: string; end: string }[]>([]);
+  const [votedSlots, setVotedSlots] = useState<Record<string, Array<{ start: string; end: string; voteCount: number }>>>({});
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [isDeleteDialogOpen, setIsDeleteDialogOpen] = useState(false);
   const [isDeleting, setIsDeleting] = useState(false);
@@ -71,6 +75,19 @@ export default function SyncEditForm({ syncId, passcode }: Props) {
 
         setSelectedDates(dates);
         setInitialSlots(slots);
+        const voted: Record<string, Array<{ start: string; end: string; voteCount: number }>> = {};
+        sync.timeOptions.forEach(option => {
+          if (option.votes.length > 0) {
+            const dateKey = new Date(option.startTime).toLocaleDateString('en-CA', {
+              timeZone: sync.timeZone,
+            });
+            const startStr = formatInTimeZone(option.startTime, sync.timeZone, 'time');
+            const endStr = formatInTimeZone(option.endTime, sync.timeZone, 'time');
+            if (!voted[dateKey]) voted[dateKey] = [];
+            voted[dateKey].push({ start: startStr, end: endStr, voteCount: option.votes.length });
+          }
+        });
+        setVotedSlots(voted);
       }
       setIsLoading(false);
     };
@@ -158,90 +175,105 @@ export default function SyncEditForm({ syncId, passcode }: Props) {
   if (isLoading) {
     return (
       <main className="flex flex-col items-center justify-center min-h-screen">
-        <p className="text-gray-500">Loading...</p>
+        <p className="text-muted-foreground">Loading...</p>
       </main>
     );
   }
 
   return (
-    <>
-      <header>
-        <h1 className="text-4xl font-bold text-center mt-20">Edit Sync</h1>
-      </header>
-      <main className="flex flex-col items-center justify-center p-10">
-        <div className="flex flex-col w-full max-w-md">
-          <Label className="text-lg mt-8 block text-left">Timezone</Label>
-          <div className="mt-2">
-            <TimeZoneSelector value={timeZone} onChange={setTimeZone} />
-          </div>
+    <div className="min-h-screen flex flex-col border-t-8 border-primary">
+      <nav className="flex items-center justify-between px-8 py-5 border-b border-border">
+        <div className="flex items-center gap-2">
+          <span className="text-lg font-semibold tracking-tight">SyncUp</span>
+          <span className="inline-flex items-center gap-1.5 text-xs font-medium text-primary bg-primary/10 border border-primary/20 px-2 py-0.5 rounded-full">
+            <span>✏️</span>
+            Editing
+          </span>
         </div>
-        <div className="flex flex-col w-full max-w-md">
-          <Label htmlFor="edit-title" className="text-lg mt-8 block text-left">Sync Title</Label>
-          <Input
-            id="edit-title"
-            type="text"
-            placeholder="Enter the title"
-            className="border border-gray-300 rounded-md p-2 mt-2 w-full"
-            value={title}
-            onChange={(e) => setTitle(e.target.value)}
-          />
-        </div>
-        <div className="flex flex-col w-full max-w-md">
-          <Label htmlFor="edit-description" className="text-lg mt-8 block text-left">Sync Description</Label>
-          <Textarea
-            id="edit-description"
-            placeholder="Enter the description"
-            className="border border-gray-300 rounded-md p-2 mt-2 w-full"
-            rows={3}
-            value={description}
-            onChange={(e) => setDescription(e.target.value)}
-          />
-        </div>
+        <Link href={`/sync/${syncId}`} className="flex items-center gap-1.5 text-sm text-muted-foreground hover:text-foreground">
+          <MdArrowBack /> Back to sync
+        </Link>
+      </nav>
 
-        <div className="flex flex-col w-full max-w-md">
-          <Label className="text-lg mt-8 block text-left">Sync Dates</Label>
-          <div className="border border-gray-300 rounded-md p-2 mt-2 w-full">
-            <CalendarPicker
-              onSelectDate={(dates: Date[] | undefined) => setSelectedDates(dates || [])}
-              selected={selectedDates}
-              maxDates={10}
+      {/* page header */}
+      <div className="px-4 sm:px-8 lg:px-16 pt-14 pb-8">
+        <div className="max-w-5xl mx-auto flex items-start justify-between gap-4">
+          <div className="flex-1 min-w-0 flex flex-col gap-2">
+            <Input
+              id="edit-title"
+              value={title}
+              onChange={(e) => setTitle(e.target.value)}
+              placeholder="Untitled Sync"
+              className="text-4xl font-bold tracking-tight border-0 border-b border-border rounded-none px-0 focus-visible:ring-0 shadow-none h-auto py-1 max-w-xl"
+            />
+            <Input
+              id="edit-description"
+              value={description}
+              onChange={(e) => setDescription(e.target.value)}
+              placeholder="Add a description..."
+              className="text-lg border-0 border-b border-border rounded-none px-0 focus-visible:ring-0 shadow-none h-auto py-1 text-muted-foreground max-w-xl"
+            />
+          </div>
+          <div className="flex items-center gap-1.5 shrink-0 px-2.5 py-1 rounded-full border border-border bg-white text-xs text-muted-foreground">
+            <Globe className="w-3.5 h-3.5 shrink-0" />
+            <TimeZoneSelector
+              value={timeZone}
+              onChange={setTimeZone}
+              className="border-0 shadow-none h-auto py-0 text-xs font-normal bg-transparent hover:bg-transparent"
             />
           </div>
         </div>
-        <div className="flex flex-col w-full max-w-md">
-          <Label className="text-lg mt-8 block text-left">Sync Times</Label>
-          <div className="border border-gray-300 rounded-md p-2 mt-2 w-full">
-            <TimeSelector
-              selectedDates={selectedDates}
-              onChange={setTimesData}
-              initialSlots={initialSlots}
-            />
+      </div>
+
+      <main className="flex-1 px-4 sm:px-8 lg:px-16 py-12">
+        <div className="max-w-5xl mx-auto flex flex-col gap-8">
+          <div className="flex flex-col lg:flex-row gap-10 lg:gap-12 xl:gap-14">
+            {/* Calendar */}
+            <div className="flex flex-col gap-3 mx-auto lg:mx-0 lg:flex-none">
+              <div className="flex items-center gap-1.5">
+                <Calendar1 className="w-4 h-4 text-muted-foreground" />
+                <Label className="text-base font-semibold">Dates</Label>
+              </div>
+              <CalendarPicker
+                onSelectDate={(dates) => setSelectedDates(dates || [])}
+                selected={selectedDates}
+                maxDates={10}
+              />
+              {selectedDates.length > 0 && (
+                <p className="text-sm text-muted-foreground">
+                  {selectedDates.length} date{selectedDates.length > 1 ? "s" : ""} selected
+                </p>
+              )}
+            </div>
+
+            <div className="flex-1 flex flex-col gap-3">
+              <div className="flex items-center gap-1.5">
+                <Clock className="w-4 h-4 text-muted-foreground" />
+                <Label className="text-base font-semibold">Times</Label>
+              </div>
+              <TimeSelector
+                selectedDates={selectedDates}
+                onChange={setTimesData}
+                initialSlots={initialSlots}
+                votedSlots={votedSlots}
+              />
+            </div>
           </div>
-        </div>
-        <div className="flex justify-between mt-8 w-full max-w-md">
-          <Button
-            type="button"
-            variant="destructive"
-            onClick={() => setIsDeleteDialogOpen(true)}
-          >
-            Delete Sync
-          </Button>
-          <div className="flex gap-2">
-            <Button
-              type="button"
-              variant="outline"
-              onClick={() => router.push(`/sync/${syncId}`)}
-            >
-              Cancel
+
+          <div className="border-t border-border" />
+          {/* Buttons */}
+          <div className="flex justify-between items-center">
+            <Button variant="destructive" onClick={() => setIsDeleteDialogOpen(true)}>
+              Delete Sync
             </Button>
-            <Button
-              type="submit"
-              onClick={handleSubmit}
-              disabled={isSubmitting}
-              className="bg-blue-500 text-white hover:bg-blue-600"
-            >
-              {isSubmitting ? "Updating..." : "Update Sync"}
-            </Button>
+            <div className="flex gap-3">
+              <Button variant="outline" className="bg-white" onClick={() => router.push(`/sync/${syncId}`)}>
+                Cancel
+              </Button>
+              <Button onClick={handleSubmit} disabled={isSubmitting}>
+                {isSubmitting ? "Updating..." : "Update Sync"}
+              </Button>
+            </div>
           </div>
         </div>
       </main>
@@ -251,7 +283,7 @@ export default function SyncEditForm({ syncId, passcode }: Props) {
           <DialogHeader>
             <DialogTitle>Delete Sync</DialogTitle>
           </DialogHeader>
-          <p className="text-sm text-gray-500">
+          <p className="text-sm text-muted-foreground">
             Are you sure want to delete this sync? This action cannot be undone.
           </p>
           <DialogFooter>
@@ -264,6 +296,6 @@ export default function SyncEditForm({ syncId, passcode }: Props) {
           </DialogFooter>
         </DialogContent>
       </Dialog>
-    </>
+    </div>
   );
 }
