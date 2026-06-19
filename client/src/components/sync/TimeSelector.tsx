@@ -7,6 +7,7 @@ interface TimeSelectorProps {
   selectedDates: Date[];
   onChange: (timesData: Array<{ date: Date; start: string; end: string }>) => void;
   initialSlots?: Record<string, Array<{ start: string; end: string }>>;
+  votedSlots?: Record<string, Array<{ start: string; end: string; voteCount: number }>>;
 }
 
 const formatDateToLocalString = (date: Date) => {
@@ -16,7 +17,7 @@ const formatDateToLocalString = (date: Date) => {
   return `${year}-${month}-${day}`;
 };
 
-export default function TimeSelector({ selectedDates, onChange, initialSlots }: TimeSelectorProps) {
+export default function TimeSelector({ selectedDates, onChange, initialSlots, votedSlots }: TimeSelectorProps) {
   const [dateTimeSlots, setDateTimeSlots] = useState<
     Record<string, Array<{ start: string; end: string }>>
   >(initialSlots || {});
@@ -114,31 +115,41 @@ export default function TimeSelector({ selectedDates, onChange, initialSlots }: 
                 </p>
               ) : (
                 slots.map((slot, index) => (
-                  <div key={index} className="flex items-center gap-2">
-                    <input
-                      type="time"
-                      value={slot.start}
-                      onChange={(e) =>
-                        updateTimeSlot(date, index, 'start', e.target.value)
-                      }
-                      className="h-8 w-[130px] rounded-md border border-input bg-white px-2.5 text-xs text-foreground focus-visible:outline-none focus-visible:ring-1 focus-visible:ring-ring"
-                    />
-                    <span className="text-xs text-muted-foreground">→</span>
-                    <input
-                      type="time"
-                      value={slot.end}
-                      onChange={(e) =>
-                        updateTimeSlot(date, index, 'end', e.target.value)
-                      }
-                      className="h-8 w-[130px] rounded-md border border-input bg-white px-2.5 text-xs text-foreground focus-visible:outline-none focus-visible:ring-1 focus-visible:ring-ring"
-                    />
-                    <button
-                      type="button"
-                      onClick={() => removeTimeSlot(date, index)}
-                      className="ml-auto flex items-center justify-center w-6 h-6 rounded border border-border text-muted-foreground hover:text-destructive hover:border-destructive/40 transition-colors"
-                    >
-                      <Trash2 className="w-3 h-3" />
-                    </button>
+                  <div key={index} className="flex flex-col gap-1">
+                    <div className="flex items-center gap-2">
+                      <input
+                        type="time"
+                        value={slot.start}
+                        onChange={(e) =>
+                          updateTimeSlot(date, index, 'start', e.target.value)
+                        }
+                        className="h-8 w-[130px] rounded-md border border-input bg-white px-2.5 text-xs text-foreground focus-visible:outline-none focus-visible:ring-1 focus-visible:ring-ring"
+                      />
+                      <span className="text-xs text-muted-foreground">→</span>
+                      <input
+                        type="time"
+                        value={slot.end}
+                        onChange={(e) =>
+                          updateTimeSlot(date, index, 'end', e.target.value)
+                        }
+                        className="h-8 w-[130px] rounded-md border border-input bg-white px-2.5 text-xs text-foreground focus-visible:outline-none focus-visible:ring-1 focus-visible:ring-ring"
+                      />
+                      <button
+                        type="button"
+                        onClick={() => removeTimeSlot(date, index)}
+                        className="ml-auto flex items-center justify-center w-6 h-6 rounded border border-border text-muted-foreground hover:text-destructive hover:border-destructive/40 transition-colors"
+                      >
+                        <Trash2 className="w-3 h-3" />
+                      </button>
+                    </div>
+                    {(() => {
+                      const voted = votedSlots?.[dateKey]?.find(v => v.start === slot.start && v.end === slot.end);
+                      return voted ? (
+                        <p className="items-center gap-1 text-xs text-amber-600 pl-1 py-0.5">
+                          ⚠️ {voted.voteCount} vote{voted.voteCount > 1 ? "s" : ""} - changing this will reset votes
+                        </p>
+                      ) : null;
+                    })()}
                   </div>
                 ))
               )}
@@ -146,6 +157,6 @@ export default function TimeSelector({ selectedDates, onChange, initialSlots }: 
           </div>
         )
       })}
-    </div>
+    </div >
   )
 }

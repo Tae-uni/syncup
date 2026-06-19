@@ -35,6 +35,7 @@ export default function SyncEditForm({ syncId, passcode }: Props) {
   const [selectedDates, setSelectedDates] = useState<Date[]>([]);
   const [initialSlots, setInitialSlots] = useState<Record<string, Array<{ start: string; end: string }>>>({});
   const [timesData, setTimesData] = useState<{ date: Date; start: string; end: string }[]>([]);
+  const [votedSlots, setVotedSlots] = useState<Record<string, Array<{ start: string; end: string; voteCount: number }>>>({});
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [isDeleteDialogOpen, setIsDeleteDialogOpen] = useState(false);
   const [isDeleting, setIsDeleting] = useState(false);
@@ -74,6 +75,19 @@ export default function SyncEditForm({ syncId, passcode }: Props) {
 
         setSelectedDates(dates);
         setInitialSlots(slots);
+        const voted: Record<string, Array<{ start: string; end: string; voteCount: number }>> = {};
+        sync.timeOptions.forEach(option => {
+          if (option.votes.length > 0) {
+            const dateKey = new Date(option.startTime).toLocaleDateString('en-CA', {
+              timeZone: sync.timeZone,
+            });
+            const startStr = formatInTimeZone(option.startTime, sync.timeZone, 'time');
+            const endStr = formatInTimeZone(option.endTime, sync.timeZone, 'time');
+            if (!voted[dateKey]) voted[dateKey] = [];
+            voted[dateKey].push({ start: startStr, end: endStr, voteCount: option.votes.length });
+          }
+        });
+        setVotedSlots(voted);
       }
       setIsLoading(false);
     };
@@ -241,6 +255,7 @@ export default function SyncEditForm({ syncId, passcode }: Props) {
                 selectedDates={selectedDates}
                 onChange={setTimesData}
                 initialSlots={initialSlots}
+                votedSlots={votedSlots}
               />
             </div>
           </div>
