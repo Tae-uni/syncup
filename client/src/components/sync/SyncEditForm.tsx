@@ -10,7 +10,6 @@ import { toast } from "sonner";
 import { Input } from "@/components/ui/input";
 import { Button } from "@/components/ui/button";
 import { Label } from "@/components/ui/label";
-import { Textarea } from "@/components/ui/textarea";
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogFooter } from "@/components/ui/dialog";
 
 import CalendarPicker from "@/components/sync/CalendarPicker";
@@ -124,6 +123,18 @@ export default function SyncEditForm({ syncId, passcode }: Props) {
     const hasInvalidTime = timesData.some(t => t.start >= t.end);
     if (hasInvalidTime) {
       toast.error("End time must be after start time");
+      return;
+    }
+
+    const hasDuplicateSlots = timesData.some((slot, i) =>
+      timesData.slice(i + 1).some(other =>
+        slot.date.toDateString() === other.date.toDateString() &&
+        slot.start === other.start &&
+        slot.end === other.end
+      )
+    );
+    if (hasDuplicateSlots) {
+      toast.error("Please remove duplicate time slots");
       return;
     }
 

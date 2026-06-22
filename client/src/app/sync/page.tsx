@@ -83,6 +83,18 @@ export default function Sync() {
       return;
     }
 
+    const hasDuplicateSlots = timesData.some((slot, i) =>
+      timesData.slice(i + 1).some(other =>
+        slot.date.toDateString() === other.date.toDateString() &&
+        slot.start === other.start &&
+        slot.end === other.end
+      )
+    );
+    if (hasDuplicateSlots) {
+      toast.error("Please remove duplicate time slots");
+      return;
+    }
+
     setIsSubmitting(true);
 
     try {
