@@ -3,30 +3,6 @@ import prisma from "../../config/prisma";
 import { AppError } from "../../middlewares/AppError";
 
 export class VoteService {
-  static async createParticipant(
-    syncId: string,
-    participantName: string,
-    passcode: string
-  ) {
-    const existingParticipant = await prisma.participant.findUnique({
-      where: {
-        syncId_name: { syncId, name: participantName },
-      }
-    });
-
-    if (existingParticipant) {
-      throw new AppError("Participant already exists", 409, "PARTICIPANT_EXISTS");
-    }
-
-    return prisma.participant.create({
-      data: {
-        syncId,
-        name: participantName,
-        hashedPasscode: await bcrypt.hash(passcode, 10),
-      }
-    });
-  }
-
   static async verifyParticipant(
     syncId: string,
     participantName: string,
@@ -60,42 +36,29 @@ export class VoteService {
     passcode: string,
     timeOptionIds: string[],
   ) {
-    const sync = await prisma.sync.findUnique({
-      where: { id: syncId },
+    const hashedPasscode = await bcrypt.hash(passcode, 10);
+
+    return prisma.$transaction(async (tx) => {
+      const participant = await tx.participant.create({
+        data: {
+          syncId,
+          name: participantName,
+          hashedPasscode,
+        }
+      });
+
+      const votes = await tx.vote.createMany({
+        data: timeOptionIds.map(timeOptionId => ({
+          participantId: participant.id,
+          timeOptionId,
+        }))
+      });
+
+      return {
+        participant,
+        voteCount: votes.count,
+      };
     });
-
-    if (!sync) {
-      throw new AppError("Sync not found", 404, "SYNC_NOT_FOUND");
-    }
-
-    const timeOptions = await prisma.timeOption.findMany({
-      where: {
-        id: { in: timeOptionIds },
-        syncId,
-      }
-    });
-
-    if (timeOptions.length !== timeOptionIds.length) {
-      throw new AppError("Invalid time options", 400, "INVALID_TIME_OPTIONS");
-    }
-
-    const participant = await this.createParticipant(
-      syncId,
-      participantName,
-      passcode
-    );
-
-    const votes = await prisma.vote.createMany({
-      data: timeOptionIds.map(timeOptionId => ({
-        participantId: participant.id,
-        timeOptionId,
-      }))
-    });
-
-    return {
-      participant,
-      voteCount: votes.count,
-    };
   }
 
   static async updateParticipantVote(
@@ -110,23 +73,23 @@ export class VoteService {
       passcode
     );
 
-    await prisma.vote.deleteMany({
-      where: {
-        participantId: participant.id,
-      }
-    });
+    return prisma.$transaction(async (tx) => {
+      await tx.vote.deleteMany({
+        where: { participantId: participant.id }
+      });
 
-    const votes = await prisma.vote.createMany({
-      data: timeOptionIds.map(timeOptionId => ({
-        participantId: participant.id,
-        timeOptionId,
-      }))
-    });
+      const votes = await tx.vote.createMany({
+        data: timeOptionIds.map(timeOptionId => ({
+          participantId: participant.id,
+          timeOptionId,
+        }))
+      });
 
-    return {
-      participant,
-      voteCount: votes.count,
-    };
+      return {
+        participant,
+        voteCount: votes.count,
+      };
+    });
   }
 
   static async cancelVote(
@@ -203,11 +166,6 @@ export class VoteService {
 
     if (!existing) {
       return this.createParticipantAndVote(syncId, participantName, passcode, timeOptionIds);
-    }
-
-    const isValid = await bcrypt.compare(passcode, existing.hashedPasscode);
-    if (!isValid) {
-      throw new AppError("Invalid passcode", 401, "INVALID_PASSCODE");
     }
 
     return this.updateParticipantVote(syncId, participantName, passcode, timeOptionIds);
