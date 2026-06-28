@@ -23,7 +23,14 @@ export default function TimeSelector({ selectedDates, onChange, initialSlots, vo
     Record<string, Array<{ start: string; end: string }>>
   >(initialSlots || {});
 
+  const MAX_TIME_OPTIONS = 20;
+  const totalSlots = Object.values(dateTimeSlots).reduce((sum, s) => sum + s.length, 0);
+  const isAtLimit = totalSlots >= MAX_TIME_OPTIONS;
+
+
   const addTimeSlot = (date: Date) => {
+    if (isAtLimit) return;
+
     const dateKey = formatDateToLocalString(date);
     const existing = dateTimeSlots[dateKey] || [];
     const newSlot = { start: "09:00", end: "10:00" };
@@ -110,7 +117,8 @@ export default function TimeSelector({ selectedDates, onChange, initialSlots, vo
               <button
                 type="button"
                 onClick={() => addTimeSlot(date)}
-                className="text-xs font-medium text-primary hover:opacity-70 transition-opacity"
+                disabled={isAtLimit}
+                className="text-xs font-medium text-primary hover:opacity-70 transition-opacity disabled:opacity-40 disabled:cursor-not-allowed"
               >
                 + Add time slot
               </button>
@@ -177,6 +185,11 @@ export default function TimeSelector({ selectedDates, onChange, initialSlots, vo
           </div>
         )
       })}
+      {isAtLimit && (
+        <p className="text-xs text-muted-foreground text-center py-1">
+          Maximum of 20 time slots reached
+        </p>
+      )}
     </div>
   )
 }

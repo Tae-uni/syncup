@@ -37,6 +37,7 @@ function humanizeMessage(message: string): string {
     "Invalid end time": "Invalid end time format",
     "Title is required": "Please enter a title",
     "Invalid time zone": "Invalid timezone selected",
+    "Too many time options": "Too many time options (max 20 allowed)",
   };
 
   return messageMap[message] || message;

@@ -248,7 +248,11 @@ export default function SyncView() {
                 optimisticVoteSubmit(data);
                 const res = await submitVote(id, data);
                 if (!res.success) {
-                  setVoteError(res.error || "Invalid passcode");
+                  if (res.errorCode === 'SYNC_EXPIRED') {
+                    setErrorCode('SYNC_EXPIRED');
+                  } else {
+                    setVoteError(res.error || "Something went wrong. Please try again.");
+                  }
                   await fetchSyncData({ silent: true });
                   return;
                 }
@@ -261,7 +265,11 @@ export default function SyncView() {
                 voteCancel(participantName, passcode);
                 const res = await cancelVote(id, participantName, passcode);
                 if (!res.success) {
-                  setVoteError(res.error || "Invalid passcode");
+                  if (res.errorCode === 'SYNC_EXPIRED') {
+                    setErrorCode('SYNC_EXPIRED');
+                  } else {
+                    setVoteError(res.error || "Something went wrong. Please try again.");
+                  }
                   await fetchSyncData({ silent: true });
                   return;
                 }
