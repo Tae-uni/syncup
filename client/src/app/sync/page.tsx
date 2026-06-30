@@ -35,6 +35,7 @@ export default function Sync() {
   const [expiresInDays, setExpiresInDays] = useState("");
   const [createdSyncId, setCreatedSyncId] = useState<string | null>(null);
   const [isSubmitting, setIsSubmitting] = useState(false);
+  const [submitAttempted, setSubmitAttempted] = useState(false);
   const [timesData, setTimesData] = useState<{
     date: Date;
     start: string;
@@ -42,11 +43,7 @@ export default function Sync() {
   }[]>([]);
 
   const handleSubmit = async () => {
-    // console.log('Submitting sync data:', {
-    //   title,
-    //   timeSelector: timesData,
-    //   timeZone,
-    // });
+    setSubmitAttempted(true);
 
     if (!title.trim()) {
       toast.error("Please enter a title");
@@ -209,6 +206,7 @@ export default function Sync() {
               <TimeSelector
                 selectedDates={selectedDates}
                 onChange={setTimesData}
+                submitAttempted={submitAttempted}
               />
             </div>
           </div>

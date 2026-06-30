@@ -9,6 +9,7 @@ interface TimeSelectorProps {
   onChange: (timesData: Array<{ date: Date; start: string; end: string }>) => void;
   initialSlots?: Record<string, Array<{ start: string; end: string }>>;
   votedSlots?: Record<string, Array<{ start: string; end: string; voteCount: number }>>;
+  submitAttempted?: boolean;
 }
 
 const formatDateToLocalString = (date: Date) => {
@@ -18,7 +19,7 @@ const formatDateToLocalString = (date: Date) => {
   return `${year}-${month}-${day}`;
 };
 
-export default function TimeSelector({ selectedDates, onChange, initialSlots, votedSlots }: TimeSelectorProps) {
+export default function TimeSelector({ selectedDates, onChange, initialSlots, votedSlots, submitAttempted }: TimeSelectorProps) {
   const [dateTimeSlots, setDateTimeSlots] = useState<
     Record<string, Array<{ start: string; end: string }>>
   >(initialSlots || {});
@@ -27,13 +28,21 @@ export default function TimeSelector({ selectedDates, onChange, initialSlots, vo
   const totalSlots = Object.values(dateTimeSlots).reduce((sum, s) => sum + s.length, 0);
   const isAtLimit = totalSlots >= MAX_TIME_OPTIONS;
 
-
+  // const newSlot = { start: "09:00", end: "10:00" };
   const addTimeSlot = (date: Date) => {
     if (isAtLimit) return;
 
     const dateKey = formatDateToLocalString(date);
     const existing = dateTimeSlots[dateKey] || [];
-    const newSlot = { start: "09:00", end: "10:00" };
+
+    const addOneHour = (t: string) => {
+      const [h, m] = t.split(":").map(Number);
+      return h + 1 >= 24 ? "23:59" : `${String(h + 1).padStart(2, "0")}:${String(m).padStart(2, "0")}`;
+    };
+    const last = existing[existing.length - 1];
+    const newSlot = last
+      ? { start: last.end, end: addOneHour(last.end) }
+      : { start: "09:00", end: "10:00" };
 
     if (existing.some(s => s.start === newSlot.start && s.end === newSlot.end)) {
       toast.error("This time slot already exists");
@@ -44,7 +53,7 @@ export default function TimeSelector({ selectedDates, onChange, initialSlots, vo
       ...prev,
       [dateKey]: [...(prev[dateKey] || []), newSlot],
     }));
-  };
+  }
 
   const updateTimeSlot = (date: Date, index: number, field: "start" | "end",
     value: string) => {
@@ -135,6 +144,7 @@ export default function TimeSelector({ selectedDates, onChange, initialSlots, vo
                   const isDuplicate = slots.filter(
                     s => s.start === slot.start && s.end === slot.end
                   ).length > 1;
+                  const isInvalidRange = submitAttempted === true && slot.start >= slot.end;
 
                   return (
                     <div key={index} className="flex flex-col gap-1">
@@ -145,7 +155,8 @@ export default function TimeSelector({ selectedDates, onChange, initialSlots, vo
                           onChange={(e) =>
                             updateTimeSlot(date, index, 'start', e.target.value)
                           }
-                          className="h-8 w-[130px] rounded-md border border-input bg-white px-2.5 text-xs text-foreground focus-visible:outline-none focus-visible:ring-1 focus-visible:ring-ring"
+                          className={`h-8 w-[130px] rounded-md border bg-white px-2.5 text-xs text-foreground focus-visible:outline-none focus-visible:ring-1 focus-visible:ring-ring ${isInvalidRange || isDuplicate ? "border-destructive" : "border-input"
+                            }`}
                         />
                         <span className="text-xs text-muted-foreground">→</span>
                         <input
@@ -154,7 +165,8 @@ export default function TimeSelector({ selectedDates, onChange, initialSlots, vo
                           onChange={(e) =>
                             updateTimeSlot(date, index, 'end', e.target.value)
                           }
-                          className="h-8 w-[130px] rounded-md border border-input bg-white px-2.5 text-xs text-foreground focus-visible:outline-none focus-visible:ring-1 focus-visible:ring-ring"
+                          className={`h-8 w-[130px] rounded-md border bg-white px-2.5 text-xs text-foreground focus-visible:outline-none focus-visible:ring-1 focus-visible:ring-ring ${isInvalidRange || isDuplicate ? "border-destructive" : "border-input"
+                            }`}
                         />
                         <button
                           type="button"
@@ -175,6 +187,11 @@ export default function TimeSelector({ selectedDates, onChange, initialSlots, vo
                       {isDuplicate && (
                         <p className="text-xs text-destructive pl-1 py-0.5">
                           Duplicate time slot
+                        </p>
+                      )}
+                      {isInvalidRange && (
+                        <p className="text-xs text-destructive pl-1 py-0.5">
+                          End time must be after start time
                         </p>
                       )}
                     </div>
