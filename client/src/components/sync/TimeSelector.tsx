@@ -28,13 +28,21 @@ export default function TimeSelector({ selectedDates, onChange, initialSlots, vo
   const totalSlots = Object.values(dateTimeSlots).reduce((sum, s) => sum + s.length, 0);
   const isAtLimit = totalSlots >= MAX_TIME_OPTIONS;
 
-
+  // const newSlot = { start: "09:00", end: "10:00" };
   const addTimeSlot = (date: Date) => {
     if (isAtLimit) return;
 
     const dateKey = formatDateToLocalString(date);
     const existing = dateTimeSlots[dateKey] || [];
-    const newSlot = { start: "09:00", end: "10:00" };
+
+    const addOneHour = (t: string) => {
+      const [h, m] = t.split(":").map(Number);
+      return h + 1 >= 24 ? "23:59" : `${String(h + 1).padStart(2, "0")}:${String(m).padStart(2, "0")}`;
+    };
+    const last = existing[existing.length - 1];
+    const newSlot = last
+      ? { start: last.end, end: addOneHour(last.end) }
+      : { start: "09:00", end: "10:00" };
 
     if (existing.some(s => s.start === newSlot.start && s.end === newSlot.end)) {
       toast.error("This time slot already exists");
