@@ -36,6 +36,7 @@ export default function SyncEditForm({ syncId, passcode }: Props) {
   const [timesData, setTimesData] = useState<{ date: Date; start: string; end: string }[]>([]);
   const [votedSlots, setVotedSlots] = useState<Record<string, Array<{ start: string; end: string; voteCount: number }>>>({});
   const [isSubmitting, setIsSubmitting] = useState(false);
+  const [submitAttempted, setSubmitAttempted] = useState(false);
   const [isDeleteDialogOpen, setIsDeleteDialogOpen] = useState(false);
   const [isDeleting, setIsDeleting] = useState(false);
 
@@ -95,7 +96,7 @@ export default function SyncEditForm({ syncId, passcode }: Props) {
   }, [syncId]);
 
   const handleSubmit = async () => {
-    // UI improvement: change to inline error for UI later.
+    setSubmitAttempted(true);
     if (!title) {
       toast.error("Please enter a title");
       return;
@@ -267,6 +268,7 @@ export default function SyncEditForm({ syncId, passcode }: Props) {
                 onChange={setTimesData}
                 initialSlots={initialSlots}
                 votedSlots={votedSlots}
+                submitAttempted={submitAttempted}
               />
             </div>
           </div>
