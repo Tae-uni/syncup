@@ -1,5 +1,6 @@
 import express from 'express';
 import cors from 'cors';
+import helmet from 'helmet';
 
 import syncRoutes from './features/sync/routes';
 import { errorHandler } from './middlewares/errorHandler';
@@ -9,7 +10,8 @@ import { setupSwagger } from './config/swagger';
 const app = express();
 const PORT = process.env.PORT || 5002;
 
-app.use(cors());
+app.use(helmet());
+app.use(cors({ origin: process.env.ALLOWED_ORIGIN || 'http://localhost:3000'}));
 app.use(express.json({ limit: "10kb" }));
 
 app.use('/api/sync', syncRoutes);

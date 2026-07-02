@@ -1,15 +1,15 @@
 import { Request, Response, NextFunction, RequestHandler } from "express";
-import { AnyZodObject, ZodError } from "zod";
+import { ZodTypeAny, ZodError } from "zod";
 import { AppError } from "./AppError";
 
 type Schemas = {
-  body?: AnyZodObject;
-  query?: AnyZodObject;
-  params?: AnyZodObject;
+  body?: ZodTypeAny;
+  query?: ZodTypeAny;
+  params?: ZodTypeAny;
 };
 
 export const validateRequest =
-  (schemas: AnyZodObject | Schemas): RequestHandler =>
+  (schemas: ZodTypeAny | Schemas): RequestHandler =>
     (req: Request, res: Response, next: NextFunction) => {
       try {
         if ("parse" in schemas) {
