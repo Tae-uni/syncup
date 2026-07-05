@@ -630,6 +630,17 @@ paths:
                 error:
                   code: SYNC_EXPIRED
                   message: This Sync has expired
+        "429":
+          description: Too many requests
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ErrorResponse"
+              example:
+                success: false
+                error:
+                  code: TOO_MANY_REQUESTS
+                  message: Too many attempts, please try again later
         "500":
           description: Internal server error
           content:
@@ -723,6 +734,17 @@ paths:
                 error:
                   code: SYNC_EXPIRED
                   message: This Sync has expired
+        "429":
+          description: Too many requests
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ErrorResponse"
+              example:
+                success: false
+                error:
+                  code: TOO_MANY_REQUESTS
+                  message: Too many attempts, please try again later
         "500":
           description: Internal server error
           content:
@@ -815,6 +837,17 @@ paths:
                 error:
                   code: SYNC_NOT_FOUND
                   message: Sync not found
+        "429":
+          description: Too many requests
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ErrorResponse"
+              example:
+                success: false
+                error:
+                  code: TOO_MANY_REQUESTS
+                  message: Too many attempts, please try again later
         "500":
           description: Internal server error
           content:
