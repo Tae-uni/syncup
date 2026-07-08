@@ -1,5 +1,3 @@
-// Apply the JSDoc to easily understand the function's purpose and usage.
-
 import { DateTime } from 'luxon';
 import { TimeZone, getTimeZones } from "@vvo/tzdb";
 
@@ -51,13 +49,6 @@ export const timezoneUtils = {
     return DateTime.fromISO(dateStr)
       .setZone(targetTimeZone)
       .toFormat('EEE, MMM d');
-  },
-
-  formatDateTime(dateStr: string, timeZone: string, showLocalTime: boolean): string {
-    const targetTimeZone = showLocalTime ? getUserTimeZone() : timeZone;
-    return DateTime.fromISO(dateStr)
-      .setZone(targetTimeZone)
-      .toFormat('EEE, MMM d, HH:mm');
   }
 };
 
@@ -85,22 +76,6 @@ export const dateTimeUtils = {
       default:
         return dateTime.toFormat('MMM d, HH:mm');
     }
-  },
-
-  formatTimeRange(startTime: string, endTime: string, timeZone: string, showLocalTime: boolean = false): string {
-    try {
-      const start = DateTime.fromISO(startTime).setZone(timeZone);
-      const end = DateTime.fromISO(endTime).setZone(timeZone);
-
-      const dateStr = start.toFormat('MMM d');
-      const timeStr = `${start.toFormat('HH:mm')} - ${end.toFormat('HH:mm')}`;
-      const tzDisplay = timeZone.split('/').pop()?.replace(/_/g, ' ') || timeZone;
-
-      return `${dateStr} ${timeStr} (${tzDisplay})`;
-    } catch (error) {
-      console.error('Error formatting time range:', error);
-      return 'Invalid date';
-    }
   }
 };
 
@@ -109,90 +84,18 @@ export const {
   formatTimeZoneDisplay,
   getTimezoneSearchString,
   formatTime,
-  formatDate,
-  formatDateTime
+  formatDate
 } = timezoneUtils;
 
 export const {
   toUTC: convertToUTC,
-  formatInTimeZone,
-  formatTimeRange
+  formatInTimeZone
 } = dateTimeUtils;
 
-/**
- * Get timezones grouped by continent
- * @returns Object with continents as keys and timezones as values
- */
-
-// export function getTimezonesGroupedByContinent(): Record<string, TimeZone[]> {
-//   const groups: Record<string, TimeZone[]> = {};
-
-//   allTimeZones.forEach((tz: TimeZone) => {
-//     // The first part before the first slash is the continent
-//     const continent = tz.name.split('/')[0];
-
-//     // If the continent group doesn't exist, create it
-//     if (!groups[continent]) {
-//       groups[continent] = [];
-//     }
-
-//     groups[continent].push(tz);
-//   });
-
-//   return groups;
-// }
-
-/**
- * Format a date in a specific timezone
- * @param date - The date to format (Date or string)
- * @param timeZone - The timezone (e.g. "Asia/Seoul")
- * @returns Formatted date string (HH:MM)
- */
-
-export function formatTimeInTimeZone(utcDate: Date | string, timeZone: string): string {
-  const date = new Date(utcDate);
-
-  return date.toLocaleString("en-US", {
-    timeZone,
-    hour: '2-digit',
-    minute: '2-digit',
-    hour12: false
-  });
-}
-
-/**
- * Convert UTC time to local time
- * @param utcTime - The UTC time to convert (YYYY-MM-DDTHH:MM:SS.000Z)
- * @param timeZone - The timezone (e.g. "Asia/Seoul")
- * @returns ISO format string (YYYY-MM-DDTHH:MM:SS.000Z)
- */
-
-export function formatDateInTimeZone(utcDate: Date | string, timeZone: string): string {
-  const date = new Date(utcDate);
-
-  return date.toLocaleString("en-US", {
-    timeZone,
-    weekday: 'short',
-    month: 'short',
-    day: 'numeric',
-  });
-}
-
-/**
- * Format time in selected timezone
- * @param dateStr - The date to format (YYYY-MM-DD)
- * @param startTime - The start time to format (HH:MM)
- * @param endTime - The end time to format (HH:MM)
- * @param timeZone - The timezone (e.g. "Asia/Seoul")
- * @returns Formatted date string (MMM D, HH:MM)
- */
-
 export function formatTimeInSelectedTimeZone(
-  dateStr: string,
   startTime: string,
   endTime: string,
   timeZone: string,
-
 ): string {
   try {
     const startDate = new Date(startTime);
@@ -202,12 +105,6 @@ export function formatTimeInSelectedTimeZone(
       console.error('Invalid date:', { startTime, endTime });
       return 'Invalid date';
     }
-
-    const formattedDate = startDate.toLocaleDateString('en-US', {
-      timeZone,
-      month: 'short',
-      day: 'numeric',
-    });
 
     const formattedStartTime = startDate.toLocaleTimeString('en-US', {
       timeZone,
@@ -223,9 +120,6 @@ export function formatTimeInSelectedTimeZone(
       hour12: false,
     });
 
-    const tzDisplay = timeZone.split('/').pop()?.replace(/_/g, ' ') || timeZone;
-
-    // return `${formattedDate} ${formattedStartTime} - ${formattedEndTime} (${tzDisplay})`;
     return `${formattedStartTime} - ${formattedEndTime}`;
   } catch (error) {
     console.error('Error formatting time:', error);
@@ -233,20 +127,9 @@ export function formatTimeInSelectedTimeZone(
   }
 }
 
-/**
- * Format time in user local timezone
- * @param dateStr - The date to format (YYYY-MM-DD)
- * @param startTime - The start time to format (HH:MM)
- * @param endTime - The end time to format (HH:MM)
- * @param timeZone - The timezone (e.g. "Asia/Seoul")
- * @returns Formatted date string (MMM D, HH:MM)
- */
-
 export function formatTimeInUserLocalTimeZone(
-  dateStr: string,
   startTime: string,
   endTime: string,
-  sourceTimeZone: string,
 ): string {
   try {
     const startDate = new Date(startTime);
@@ -258,12 +141,6 @@ export function formatTimeInUserLocalTimeZone(
     }
 
     const userTimeZone = getUserTimeZone();
-
-    const userFormattedDate = startDate.toLocaleDateString('en-US', {
-      timeZone: userTimeZone,
-      month: 'short',
-      day: 'numeric',
-    });
 
     const userFormattedStartTime = startDate.toLocaleTimeString('en-US', {
       timeZone: userTimeZone,
@@ -279,9 +156,6 @@ export function formatTimeInUserLocalTimeZone(
       hour12: false,
     });
 
-    const userTzDisplay = userTimeZone.split('/').pop()?.replace(/_/g, ' ') || userTimeZone;
-
-    // return `${userFormattedDate} ${userFormattedStartTime} - ${userFormattedEndTime} (${userTzDisplay} - your local time)`;
     return `${userFormattedStartTime} - ${userFormattedEndTime}`;
   } catch (error) {
     console.error('Error converting time:', error);

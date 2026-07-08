@@ -20,7 +20,6 @@ interface TimeZoneSelectorProps {
 export default function TimeZoneSelector({ value, onChange, className }: TimeZoneSelectorProps) {
   const allTimeZones = useMemo(() => getTimeZones(), []);
 
-  const [userTimeZone, setUserTimeZone] = useState("");
   const [open, setOpen] = useState(false);
 
   const selectedLabel = formatTimeZoneDisplay(value);
@@ -42,7 +41,6 @@ export default function TimeZoneSelector({ value, onChange, className }: TimeZon
   useEffect(() => {
     try {
       const localTimeZone = Intl.DateTimeFormat().resolvedOptions().timeZone;
-      setUserTimeZone(localTimeZone);
 
       if (!value && localTimeZone) {
         onChange(localTimeZone);

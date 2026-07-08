@@ -1,5 +1,4 @@
 import { RequestHandler } from "express";
-import { AppError } from "../../middlewares/AppError";
 import { asyncHandler } from "../../utils/asyncHandler";
 import { createSync, getSyncById, verifyLeaderPasscode, updateSync, deleteSync } from "./sync.service";
 import { VoteService } from "./vote.service";

@@ -168,8 +168,8 @@ export default function VoteForm({ syncData, onSubmit, onCancel, showLocalTime, 
                 {options.map(option => {
                   const isSelected = selectedTimes.includes(option.id);
                   const timeLabel = showLocalTime
-                    ? formatTimeInUserLocalTimeZone(option.date, option.startTime, option.endTime, sync.timeZone)
-                    : formatTimeInSelectedTimeZone(option.date, option.startTime, option.endTime, sync.timeZone);
+                    ? formatTimeInUserLocalTimeZone(option.startTime, option.endTime)
+                    : formatTimeInSelectedTimeZone(option.startTime, option.endTime, sync.timeZone);
                   return (
                     <button
                       key={option.id}

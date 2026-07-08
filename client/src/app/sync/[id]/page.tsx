@@ -90,7 +90,7 @@ export default function SyncView() {
     setSyncData(newSyncData);
   };
 
-  const voteCancel = (participantName: string, passcode: string) => {
+  const voteCancel = (participantName: string) => {
     if (!syncData) return;
 
     const exists = syncData.sync.participants.some(
@@ -262,7 +262,7 @@ export default function SyncView() {
               }}
               onCancel={async (participantName, passcode) => {
                 setVoteError(null);
-                voteCancel(participantName, passcode);
+                voteCancel(participantName);
                 const res = await cancelVote(id, participantName, passcode);
                 if (!res.success) {
                   if (res.errorCode === 'SYNC_EXPIRED') {
