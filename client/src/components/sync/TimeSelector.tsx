@@ -28,7 +28,6 @@ export default function TimeSelector({ selectedDates, onChange, initialSlots, vo
   const totalSlots = Object.values(dateTimeSlots).reduce((sum, s) => sum + s.length, 0);
   const isAtLimit = totalSlots >= MAX_TIME_OPTIONS;
 
-  // const newSlot = { start: "09:00", end: "10:00" };
   const addTimeSlot = (date: Date) => {
     if (isAtLimit) return;
 

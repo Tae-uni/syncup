@@ -51,11 +51,6 @@ export interface VoteSubmitData {
   passcode: string;
 }
 
-export interface CancelVoteData {
-  participantName: string;
-  passcode: string;
-}
-
 // Results
 export interface CancelVoteResult {
   deletedParticipantId: string;
@@ -90,18 +85,3 @@ export interface CreateSyncFormData {
 export type CreateSyncResult = {
   id: string;
 }
-
-// Get Sync data
-// export interface SyncData {
-//   success: boolean;
-//   data: {
-//     sync: SyncView;
-//     votes: Record<string, string[]>;
-//   }
-// }
-
-// export interface VoteSubmitResponse {
-//   participant: ParticipantView;
-//   voteCount: number;
-//   participantId: string;
-// }
