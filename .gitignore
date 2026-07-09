@@ -9,7 +9,6 @@ package-lock.json
 
 # Env
 .env
-.env.*
 
 # IDE
 .idea/
