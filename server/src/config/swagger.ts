@@ -9,5 +9,11 @@ const swaggerDocument = YAML.parse(
 );
 
 export function setupSwagger(app: Express) {
-  app.use("/api-docs", swaggerUi.serve, swaggerUi.setup(swaggerDocument));
+  // disable Swagger try-it-out in production
+  const setupOptions =
+    process.env.NODE_ENV === "production"
+      ? { swaggerOptions: { supportedSubmitMethods: [] } }
+      : undefined;
+
+  app.use("/api-docs", swaggerUi.serve, swaggerUi.setup(swaggerDocument, setupOptions));
 }
