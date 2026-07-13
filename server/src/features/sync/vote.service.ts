@@ -55,7 +55,7 @@ export class VoteService {
       });
 
       return {
-        participant,
+        participant: { id: participant.id, name: participant.name },
         voteCount: votes.count,
       };
     });
@@ -86,7 +86,7 @@ export class VoteService {
       });
 
       return {
-        participant,
+        participant: { id: participant.id, name: participant.name },
         voteCount: votes.count,
       };
     });

@@ -160,6 +160,17 @@ paths:
                   details:
                     - field: title
                       message: Title is required
+        "429":
+          description: Too many requests
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ErrorResponse"
+              example:
+                success: false
+                error:
+                  code: TOO_MANY_REQUESTS
+                  message: Too many requests, please try again later
         "500":
           description: Internal server error
           content:
@@ -247,6 +258,20 @@ paths:
                                 name:
                                   type: string
                                   example: John
+        "400":
+          description: Validation error
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ValidationErrorResponse"
+              example:
+                success: false
+                error:
+                  code: VALIDATION_ERROR
+                  message: Invalid request
+                  details:
+                    - field: id
+                      message: Invalid sync id
         "404":
           description: Sync not found
           content:
@@ -269,6 +294,17 @@ paths:
                 error:
                   code: SYNC_EXPIRED
                   message: This Sync has expired
+        "429":
+          description: Too many requests
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ErrorResponse"
+              example:
+                success: false
+                error:
+                  code: TOO_MANY_REQUESTS
+                  message: Too many requests, please try again later
         "500":
           description: Internal server error
           content:
@@ -405,6 +441,17 @@ paths:
                 error:
                   code: SYNC_NOT_FOUND
                   message: Sync not found
+        "429":
+          description: Too many requests
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ErrorResponse"
+              example:
+                success: false
+                error:
+                  code: TOO_MANY_REQUESTS
+                  message: Too many requests, please try again later
         "500":
           description: Internal server error
           content:
@@ -481,6 +528,17 @@ paths:
                 error:
                   code: SYNC_NOT_FOUND
                   message: Sync not found
+        "429":
+          description: Too many requests
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ErrorResponse"
+              example:
+                success: false
+                error:
+                  code: TOO_MANY_REQUESTS
+                  message: Too many requests, please try again later
         "500":
           description: Internal server error
           content:
@@ -608,17 +666,6 @@ paths:
                 error:
                   code: SYNC_NOT_FOUND
                   message: Sync not found
-        "409":
-          description: Participant name already exists
-          content:
-            application/json:
-              schema:
-                $ref: "#/components/schemas/ErrorResponse"
-              example:
-                success: false
-                error:
-                  code: PARTICIPANT_EXISTS
-                  message: Participant already exists
         "410":
           description: Sync has expired
           content:
@@ -640,7 +687,7 @@ paths:
                 success: false
                 error:
                   code: TOO_MANY_REQUESTS
-                  message: Too many attempts, please try again later
+                  message: Too many requests, please try again later
         "500":
           description: Internal server error
           content:
@@ -701,6 +748,20 @@ paths:
                       deletedParticipantId:
                         type: string
                         example: 550e8400-e29b-41d4-a716-446655440000
+        "400":
+          description: Validation error
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ValidationErrorResponse"
+              example:
+                success: false
+                error:
+                  code: VALIDATION_ERROR
+                  message: Invalid request body
+                  details:
+                    - field: passcode
+                      message: Passcode must be 4 digits
         "401":
           description: Invalid passcode
           content:
@@ -744,7 +805,7 @@ paths:
                 success: false
                 error:
                   code: TOO_MANY_REQUESTS
-                  message: Too many attempts, please try again later
+                  message: Too many requests, please try again later
         "500":
           description: Internal server error
           content:
@@ -847,7 +908,7 @@ paths:
                 success: false
                 error:
                   code: TOO_MANY_REQUESTS
-                  message: Too many attempts, please try again later
+                  message: Too many requests, please try again later
         "500":
           description: Internal server error
           content:
