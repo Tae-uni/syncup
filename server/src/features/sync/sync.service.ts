@@ -62,10 +62,18 @@ export const verifyLeaderPasscode = async (syncId: string, passcode: string): Pr
 export const getSyncById = async (id: string) => {
   const sync = await prisma.sync.findUnique({
     where: { id },
-    include: {
+    select: {
+      id: true,
+      title: true,
+      description: true,
+      timeZone: true,
+      expiresAt: true,
+      createdAt: true,
       timeOptions: true,
-      participants: true,
-    }
+      participants: {
+        select: { id: true, name: true },
+      },
+    },
   });
 
   if (!sync) {
