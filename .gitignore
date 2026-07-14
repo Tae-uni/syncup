@@ -1,6 +1,5 @@
 # Node
 node_modules/
-package-lock.json
 /server/requests/test.http
 /server/src/features/test.ts
 
@@ -55,3 +54,6 @@ next-env.d.ts
 
 CLAUDE.md
 skills/
+
+# dist
+/server/dist/

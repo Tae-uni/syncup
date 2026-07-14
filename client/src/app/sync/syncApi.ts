@@ -134,8 +134,6 @@ export async function createSync(
     ...(formData.expiresAt && { expiresAt: formData.expiresAt }),
   };
 
-  console.log("Payload to server:", JSON.stringify(serverData, null, 2));
-
   return request<CreateSyncResult>(`${API_BASE_URL}/sync`, {
     method: "POST",
     headers: { "Content-Type": "application/json" },

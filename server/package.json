@@ -8,6 +8,8 @@
   "main": "index.ts",
   "scripts": {
     "dev": "ts-node-dev --respawn --transpile-only src/index.ts",
+    "build": "prisma generate && tsc",
+    "start": "prisma migrate deploy && node dist/index.js",
     "lint": "eslint \"src/**/*.{ts,js,mjs}\"",
     "format": "prettier --write \"src/**/*.{ts,js,mjs}\""
   },
