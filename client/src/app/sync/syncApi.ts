@@ -9,7 +9,7 @@ import {
   CreateSyncResult,
 } from "@/types/sync";
 
-const API_BASE_URL = "http://localhost:5002/api";
+const API_BASE_URL = `${process.env.NEXT_PUBLIC_API_URL || "http://localhost:5002"}/api`;
 
 function humanizeErrorMessage(path: string | undefined, message: string): string {
   const timeSelectorMatch = path?.match(/^timeSelector\.(\d+)$/);
