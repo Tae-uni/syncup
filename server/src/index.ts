@@ -21,7 +21,7 @@ app.use('/api/sync', syncRoutes);
 setupSwagger(app);
 app.use(errorHandler);
 app.get('/', (_req, res) => {
-  res.send("TypeScript Express Server is running!");
+  res.json({ name: "SyncUp API", status: "ok", docs: "/api-docs" });
 });
 
 app.listen(PORT, () => {
