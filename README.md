@@ -4,9 +4,9 @@ A lightweight scheduling tool for finding a time that works for everyone, withou
 
 A Leader proposes a few time slots, shares a link, and participants mark when they're free using nothing but a name and a 4-digit passcode. No sign-up, no email, no third-party sign-in.
 
-**Live demo:** <!-- TODO: add deployed URL -->
+**Live demo:** https://syncup-tau.vercel.app/
 
-<!-- TODO: add a screenshot of the live results view (with a few votes filled in) -->
+![SyncUp — see when everyone is available](docs/images/results.png)
 
 ## Why I built it
 
@@ -31,6 +31,12 @@ The goal was simple and modern, not feature-heavy. The interesting part is under
 - **Brute-force resistant.** Passcodes are bcrypt-hashed and the auth endpoints are rate-limited.
 - **Self-cleaning.** Syncs expire and a weekly job purges the old ones.
 - **Documented.** The full API is described in an OpenAPI spec and browsable at `/api-docs`.
+
+## Screenshots
+
+| Landing | Create a Sync |
+|:---:|:---:|
+| ![Landing page](docs/images/landing.png) | ![Creating a Sync](docs/images/create.png) |
 
 ## Design notes
 
@@ -65,7 +71,7 @@ npm install
 npm run dev                 # http://localhost:3000
 ```
 
-Interactive API docs (Swagger UI) are served at **http://localhost:5002/api-docs**.
+Interactive API docs (Swagger UI) are served at **https://syncup-hls6.onrender.com/api-docs/**.
 
 ## Project layout
 
