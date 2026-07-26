@@ -3,37 +3,54 @@
 Table Sync {
   id uuid [pk]
   title text
-  description textarea [null]
-  timeZone string [default: "UTC"]
-  expiresAt datetime [null]
-  createdAt datetime
+  description text [null]
+  timeZone text [default: "UTC"]
+  expiresAt timestamp [null]
+  hashedPasscode text
+  createdAt timestamp
+  updatedAt timestamp
+
+  indexes {
+    expiresAt
+  }
 }
 
 Table Participant {
   id uuid [pk]
-  name string
+  name text
   syncId uuid [ref: > Sync.id]
-  createdAt datetime
+  hashedPasscode text
+  createdAt timestamp
+
+  indexes {
+    (syncId, name) [unique]
+  }
 }
 
 Table TimeOption {
   id uuid [pk]
   syncId uuid [ref: > Sync.id]
-  date datetime
-  startTime datetime
-  endTime datetime
-  // If it is null, made by host
+  date timestamp
+  startTime timestamp
+  endTime timestamp
+  // null = created by the leader
   createdByParticipantId uuid [ref: > Participant.id, null]
-  createdAt datetime
+  createdAt timestamp
+  updatedAt timestamp
+
+  indexes {
+    (syncId, date)
+  }
 }
 
 Table Vote {
   id uuid [pk]
   participantId uuid [ref: > Participant.id]
   timeOptionId uuid [ref: > TimeOption.id]
-  createdAt datetime
+  createdAt timestamp
 
   indexes {
     (participantId, timeOptionId) [unique]
+    timeOptionId
   }
 }
