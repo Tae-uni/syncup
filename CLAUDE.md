@@ -18,6 +18,10 @@ SyncUp is a lightweight scheduling service where a Leader creates a Sync with ti
 ```bash
 cd server
 npm run dev          # Start dev server (port 5002)
+npm test             # Vitest integration tests (needs the test DB running)
+npm run test:db:up   # Start test Postgres via Docker
+npm run test:db:down # Stop and remove it
+npm run typecheck    # tsc, includes tests
 npm run lint         # ESLint
 npm run format       # Prettier
 npx prisma migrate dev    # Run migrations
@@ -33,76 +37,16 @@ npm run build        # Production build
 npm run lint         # ESLint
 ```
 
-Node version: v18.18.0 (see `.nvmrc`)
+Node version: v22 (see `.nvmrc`)
 
 ## Architecture
 
-### Monorepo Structure
-- `client/` - Next.js 14 App Router frontend
-- `server/` - Express.js backend with Prisma ORM
-- `docs/` - Requirements spec and ERD
+Two apps in one repo: `client/` (Next.js 14 App Router) and `server/` (Express + Prisma + PostgreSQL).
+They share no packages and deploy separately. Backend layering is
+route → validate → controller → service → Prisma.
 
-### Backend Pattern (server/src/)
-```
-features/sync/
-├── routes.ts           # Route definitions
-├── sync.controller.ts  # HTTP handlers
-├── sync.service.ts     # Business logic
-├── vote.controller.ts
-├── vote.service.ts
-└── schemas.ts          # Zod validation schemas
-
-middlewares/
-├── AppError.ts         # Custom error class: AppError(message, statusCode, code, details?)
-└── errorHandler.ts     # Returns { success: false, error: { code, message, details? } }
-
-utils/asyncHandler.ts   # Wraps async route handlers
-config/prisma.ts        # Prisma singleton
-```
-
-### Frontend Pattern (client/src/)
-```
-app/sync/
-├── page.tsx            # Create sync page
-├── [id]/page.tsx       # View/vote sync page
-└── syncApi.ts          # API client with ApiResponse<T> type
-
-components/sync/        # Feature-specific components
-lib/
-├── timezoneConvert.ts  # Timezone conversion (UTC storage, local display)
-└── heatmapTimeUtils.ts
-types/sync.ts           # Shared TypeScript types
-```
-
-### API Routes
-- `POST /api/sync` - Create sync with time options
-- `GET /api/sync/:id` - Get sync details with votes
-- `POST /api/sync/:id/votes` - Submit vote (name + passcode required)
-- `DELETE /api/sync/:id/votes` - Cancel votes (name + passcode verification)
-
-### Database Models (Prisma)
-- **Sync** - Scheduling session (title, description, timeZone, expiresAt)
-- **TimeOption** - Proposed time slots linked to Sync
-- **Participant** - Voters identified by name + hashedPasscode (unique per Sync)
-- **Vote** - Links Participant to TimeOption (unique constraint)
-
-Cascade: Deleting a Sync cascades to TimeOptions, Participants, and Votes.
-
-## Key Patterns
-
-### Error Handling
-Server errors use `AppError` class thrown from services, caught by global handler:
-```typescript
-throw new AppError('Invalid passcode', 401, 'INVALID_PASSCODE');
-```
-
-### Timezone Handling
-- All times stored in UTC in database
-- Conversion to local timezone happens only at display time
-- Use `lib/timezoneConvert.ts` patterns for any time logic
-
-### Validation
-Zod schemas in `server/src/features/sync/schemas.ts` with superRefine for complex rules.
+**Read [docs/architecture.md](docs/architecture.md) before adding an endpoint, changing the data
+model, or touching project structure.**
 
 ## Development Rules
 
@@ -111,17 +55,20 @@ From project skills that MUST be followed:
 1. Do NOT implement features not explicitly defined in `docs/requirements.md`
 2. Do NOT reinterpret or extend requirements without confirmation
 3. If a requirement is ambiguous, STOP and ask for clarification
-4. New APIs must follow existing `routes.ts` patterns
-5. New components go in `components/sync/`
-6. Error handling must use `AppError` class
-7. Types must be defined in `types/sync.ts`
-8. Do NOT introduce new patterns without explicit approval
+4. Do NOT introduce new patterns without explicit approval
+5. New APIs must follow existing `routes.ts` patterns
+6. Services throw `AppError`; a service must never send a response itself
+7. Define Zod schemas in `features/sync/schemas.ts` and validate at the route via `validateRequest`
+8. Store and transmit UTC; convert only at display time via `lib/timezoneConvert.ts`
+9. New components go in `components/sync/`
+10. Types must be defined in `types/sync.ts`
 
 ## Git Conventions
 
 ### Commit Messages
 Use gitmoji prefix with scope: `:emoji: (scope) short description`
-- `:sparkles:` new feature, `:bug:` bug fix, `:memo:` docs, `:recycle:` refactor
+- `:sparkles:` feature, `:bug:` fix, `:pencil:` docs, `:recycle:` refactor
+- `:wrench:` config, `:lock:` security, `:fire:` removal, `:white_check_mark:` tests, `:construction_worker:` CI
 
 ### Pull Requests
 - Title: `Type/issue-number short description` (e.g. `Feat/28 update Swagger docs`)
@@ -135,5 +82,5 @@ Use gitmoji prefix with scope: `:emoji: (scope) short description`
 
 ## Environment Variables
 
-- Server: `DATABASE_URL` (PostgreSQL connection string)
-- Client: `NEXT_PUBLIC_API_URL=http://localhost:5002`
+- Server: `DATABASE_URL`, `PORT` (default 5002), `ALLOWED_ORIGIN` (default `http://localhost:3000`), `NODE_ENV`
+- Client: `NEXT_PUBLIC_API_URL` (default `http://localhost:5002`)
